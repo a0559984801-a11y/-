@@ -239,7 +239,7 @@ function applySettings(){
   ['Top','Bottom','Side'].forEach(pos=>{
     document.getElementById('adText'+pos).value=settings['adText'+pos]||'';
     document.getElementById('adLink'+pos).value=settings['adLink'+pos]||'';
-    const show=settings['showAd'+pos]!=='false';
+    const val=settings['showAd'+pos]; const show=val!==false&&val!=='false'&&val!=='FALSE';
     adState[pos]=show;
     updateToggle(pos);
   });
@@ -322,7 +322,7 @@ async function saveAds(){
   ['Top','Bottom','Side'].forEach(pos=>{
     payload['adText'+pos]=document.getElementById('adText'+pos).value;
     payload['adLink'+pos]=document.getElementById('adLink'+pos).value;
-    payload['showAd'+pos]=String(adState[pos]);
+    payload['showAd'+pos]=adState[pos]?'true':'false';
   });
   await postData('settings',payload);
   showOk('adOk');
