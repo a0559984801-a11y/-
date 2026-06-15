@@ -26,7 +26,9 @@ header h1{font-size:1.1rem;font-weight:700;}
 .main-layout{display:flex;flex:1;overflow:hidden;height:calc(100vh - 120px);}
 
 /* Sidebar */
-.sidebar{width:210px;min-width:190px;background:white;border-left:1px solid #e0ddd6;padding:12px 10px;overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column;height:100%;position:sticky;top:0;}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:99;}
+.sidebar-overlay.open{display:block;}
+.sidebar{width:210px;min-width:190px;width:210px;min-width:190px;background:white;border-left:1px solid #e0ddd6;padding:12px 10px;overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column;height:100%;position:sticky;top:0;}
 .sidebar-title{font-size:0.82rem;font-weight:700;color:#1a1a2e;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #1a1a2e;}
 .filter-group{margin-bottom:11px;}
 .filter-label{font-size:0.72rem;color:#666;font-weight:600;margin-bottom:4px;display:block;}
@@ -131,6 +133,7 @@ td.date-cell{text-align:right;font-weight:600;color:#333;white-space:nowrap;back
 
 <header>
   <div class="header-right">
+    <button class="hamburger-btn" onclick="toggleSidebar()">☰</button>
     <h1>זמינות אולמות חתונה</h1>
     <div class="legend">
       <div class="legend-item"><div class="dot dot-green"></div> פנוי</div>
@@ -142,6 +145,7 @@ td.date-cell{text-align:right;font-weight:600;color:#333;white-space:nowrap;back
     <a href="halls.html" class="btn-halls">🏛 מידע על אולמות</a>
   </div>
 </header>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 <div id="adTop" style="display:none;width:100%;height:60px;background:#e8e4dc;align-items:center;justify-content:center;font-size:0.75rem;color:#999;border-bottom:1px solid #d5d0c8;flex-shrink:0;"></div>
 
 <div class="main-layout">
@@ -359,221 +363,4 @@ document.addEventListener('click',e=>{if(!e.target.closest('.dropdown-check'))['
 
 function getFiltered(){
   const fv=document.getElementById('filterFrom').value,tv=document.getElementById('filterTo').value;
-  const hv=getChecked('listHall'),cv=getChecked('listCity'),kv=getChecked('listKashrut'),av=getChecked('listAccess');
-  const sm=parseInt(document.getElementById('seatsMin').value)||0,sx=parseInt(document.getElementById('seatsMax').value)||Infinity;
-  return allData.filter(r=>{
-    if(hv.length&&!hv.includes(r.hall))return false;
-    if(cv.length&&!cv.includes(r.city))return false;
-    if(kv.length&&!kv.includes(r.kashrut))return false;
-    if(av.length&&!av.includes(r.access))return false;
-    if(r.seats&&(r.seats<sm||r.seats>sx))return false;
-    if(fv&&r.dateObj<new Date(fv))return false;
-    if(tv&&r.dateObj>new Date(tv))return false;
-    return true;
-  });
-}
-
-function genDates(from,to){const ds=[],d=new Date(from);d.setHours(0,0,0,0);const e=new Date(to);e.setHours(0,0,0,0);while(d<=e){ds.push(new Date(d));d.setDate(d.getDate()+1);}return ds;}
-function sCls(s){if(!s)return 'cell-free';const v=s.trim();return(v==='תפוס'||v==='taken'||v==='booked')?'cell-taken':(v==='שמור'||v==='reserved'||v==='pending')?'cell-reserved':'cell-free';}
-function sTxt(s){if(!s)return 'פנוי';const v=s.trim();return(v==='תפוס'||v==='taken'||v==='booked')?'תפוס':(v==='שמור'||v==='reserved'||v==='pending')?'שמור':'פנוי';}
-
-function buildTable(){
-  const fd=getFiltered();
-  const hv=getChecked('listHall');
-  let halls=[...new Set(fd.map(r=>r.hall))].sort();
-  if(hv.length)halls=halls.filter(h=>hv.includes(h));
-  const lk={};fd.forEach(r=>{lk[r.dateKey+'|'+r.hall]=r.status;});
-  const today=new Date();today.setHours(0,0,0,0);
-  const end=new Date();end.setDate(today.getDate()+365);
-  const fv=document.getElementById('filterFrom').value,tv=document.getElementById('filterTo').value;
-  const from=fv?new Date(fv):today,to=tv?new Date(tv):end;
-  const dates=genDates(from,to);
-  let hRow='<tr><th class="date-col">תאריך</th>';
-  halls.forEach(h=>{hRow+=`<th>${h}</th>`;});
-  hRow+='</tr>';
-  document.getElementById('tableHead').innerHTML=hRow;
-  let body='';
-  dates.forEach(d=>{
-    const key=fmtKey(d),he=toHe(d),greg=key,day=DAYS_HE[d.getDay()];
-    body+=`<tr><td class="date-cell">${he}<span class="date-greg">${greg} | יום ${day}</span></td>`;
-    halls.forEach(h=>{const s=lk[key+'|'+h]||null;const cls=sCls(s);const txt=sTxt(s);body+=`<td><span class="cell-status ${cls}">${txt}</span></td>`;});
-    body+='</tr>';
-  });
-  document.getElementById('tableBody').innerHTML=body;
-  document.getElementById('mainTable').style.display='table';
-}
-
-function setView(v){
-  currentView=v;
-  document.getElementById('btnTableView').classList.toggle('active',v==='table');
-  document.getElementById('btnCalView').classList.toggle('active',v==='calendar');
-  document.getElementById('tableView').style.display=v==='table'?'block':'none';
-  document.getElementById('calendarView').style.display=v==='calendar'?'block':'none';
-  if(v==='calendar')renderCal();
-}
-
-function renderCal(){
-  if(!calYear){const n=new Date();calYear=n.getFullYear();calMonth=n.getMonth();}
-  const first=new Date(calYear,calMonth,1),last=new Date(calYear,calMonth+1,0);
-  const heM=first.toLocaleDateString('he-IL-u-ca-hebrew',{month:'long',year:'numeric'});
-  document.getElementById('calTitle').textContent=MONTHS_GREG[calMonth]+' '+calYear+' | '+heM;
-  const lk={};
-  allData.filter(r=>r.hall===calHall&&r.dateObj>=first&&r.dateObj<=last).forEach(r=>{lk[r.dateKey]=r.status;});
-  let html='';
-  DAYS_S.forEach(d=>{html+=`<div class="cal-day-header">${d}</div>`;});
-  for(let i=0;i<first.getDay();i++)html+=`<div class="cal-cell empty"></div>`;
-  for(let day=1;day<=last.getDate();day++){
-    const d=new Date(calYear,calMonth,day),key=fmtKey(d),s=lk[key]||null;
-    const he=toHe(d),cls=sCls(s),txt=sTxt(s);
-    const bg=cls==='cell-free'?'#d4f5e4':cls==='cell-taken'?'#fde8e8':'#fef3cd';
-    const cl=cls==='cell-free'?'#1a7a45':cls==='cell-taken'?'#a32020':'#8a5c00';
-    html+=`<div class="cal-cell"><div class="cal-date-he">${he}</div><div class="cal-date-greg">${day}/${calMonth+1}</div><span class="cal-status" style="background:${bg};color:${cl}">${txt}</span></div>`;
-  }
-  document.getElementById('calGrid').innerHTML=html;
-}
-
-
-
-function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCal();}
-function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCal();}
-function applyFilters(){buildTable();if(currentView==='calendar')renderCal();}
-function resetFilters(){
-  const t=new Date(),e=new Date();e.setDate(t.getDate()+365);
-  document.getElementById('filterFrom').value=t.toISOString().split('T')[0];
-  document.getElementById('filterTo').value=e.toISOString().split('T')[0];
-  ['listHall','listCity','listKashrut','listAccess'].forEach(id=>{
-    document.querySelectorAll(`#${id} input`).forEach(c=>c.checked=false);
-    document.getElementById(id.replace('list','lbl')).textContent='הכל';
-  });
-  document.getElementById('seatsMin').value='';document.getElementById('seatsMax').value='';
-  document.getElementById('viewToggle').style.display='none';calHall='';
-  if(currentView==='calendar')setView('table');
-  buildTable();
-}
-
-// Admin
-function openAdmin(){document.getElementById('adminModal').classList.add('open');document.getElementById('adminPass').focus();}
-function closeAdmin(){document.getElementById('adminModal').classList.remove('open');document.getElementById('adminPass').value='';document.getElementById('loginError').style.display='none';}
-function checkPass(){
-  const p=document.getElementById('adminPass').value;
-  const correct=(window._settings&&window._settings.adminPass)||'CHANGE_ME';
-  if(p===correct){closeAdmin();window.location.href='admin.html';}
-  else{document.getElementById('loginError').style.display='block';}
-}
-function populateFilters(){
-    const cities=[...new Set(allData.map(r=>r.city).filter(Boolean))].sort();
-    const kash=[...new Set(allData.map(r=>r.kashrut).filter(Boolean))].sort();
-    const halls=[...new Set(allData.map(r=>r.hall))].sort();
-    const access=[...new Set(allData.map(r=>r.access).filter(Boolean))].sort();
-    buildCL('listCity','lblCity',cities);
-    buildCL('listKashrut','lblKashrut',kash);
-    buildCL('listHall','lblHall',halls);
-    buildCL('listAccess','lblAccess',access);
-}
-function loadSettings(){
-  const s=window._settings||{};
-  // Logo + header
-  if(s.logo){const el=document.getElementById('logoImg');el.src=s.logo;el.style.display='block';}
-  if(s.siteName)document.getElementById('siteNameEl').textContent=s.siteName;
-  if(s.headerColor)document.getElementById('siteHeader').style.background=s.headerColor;
-  // Contact email
-  if(s.contactEmail){
-    const cm=document.getElementById('contactMailLink');
-    if(cm)cm.href='mailto:'+s.contactEmail;
-  }
-  // Bottom ad
-  const adBottom=document.getElementById('adBottom');
-  if(adBottom){
-    if(s.showAdBottom!=='false'){
-      adBottom.style.display='flex';
-      const c=document.getElementById('adContent');
-      const txt=s.adTextBottom||'פרסומת';
-      if(s.adLinkBottom)c.innerHTML=`<a href="${s.adLinkBottom}" target="_blank">${txt}</a>`;
-      else c.textContent=txt;
-    } else adBottom.style.display='none';
-  }
-  // Side ad
-  const adSide=document.getElementById('adSidebar');
-  if(adSide){
-    if(s.showAdSide!=='false'){
-      const txt=s.adTextSide||'פרסומת צדדית';
-      if(s.adLinkSide)adSide.innerHTML=`<a href="${s.adLinkSide}" target="_blank" style="color:#999;text-decoration:none">${txt}</a>`;
-      else adSide.innerHTML=txt;
-    } else adSide.style.display='none';
-  }
-  // Top ad
-  const adTop=document.getElementById('adTop');
-  if(adTop){
-    if(s.showAdTop!=='false'&&s.adTextTop){
-      adTop.style.display='flex';
-      if(s.adLinkTop)adTop.innerHTML=`<a href="${s.adLinkTop}" target="_blank" style="color:#999;text-decoration:none">${s.adTextTop}</a>`;
-      else adTop.textContent=s.adTextTop;
-    } else if(s.showAdTop==='false') adTop.style.display='none';
-  }
-}
-
-function applyHebrewMonthFilter(){
-  const month=document.getElementById('filterHeMonth').value;
-  if(!month) return;
-  // Find dates matching Hebrew month
-  const matchingDates=allData.filter(r=>{
-    const he=toHe(r.dateObj);
-    return he.includes(month);
-  });
-  if(!matchingDates.length) return;
-  const sorted=matchingDates.map(r=>r.dateObj).sort((a,b)=>a-b);
-  document.getElementById('filterFrom').value=sorted[0].toISOString().split('T')[0];
-  document.getElementById('filterTo').value=sorted[sorted.length-1].toISOString().split('T')[0];
-  applyFilters();
-}
-
-async function fetchData(){
-  try{
-    const CACHE_MS=5*60*1000;
-    const cached=sessionStorage.getItem('alldata'),cachedTime=+sessionStorage.getItem('alltime')||0;
-    let availData, settingsData={}, hallsData=[];
-    if(cached&&Date.now()-cachedTime<CACHE_MS){
-      const bundle=JSON.parse(cached);
-      availData=bundle.avail||[];
-      settingsData=bundle.settings||{};
-      hallsData=bundle.halls||[];
-    } else {
-      // Fetch all 3 in parallel
-      const [r1,r2,r3]=await Promise.all([
-        fetch(API_URL),
-        fetch(API_URL+'?action=settings'),
-        fetch(API_URL+'?action=halls')
-      ]);
-      availData=r1.ok?await r1.json():[];
-      settingsData=r2.ok?await r2.json():{};
-      hallsData=r3.ok?await r3.json():[];
-      sessionStorage.setItem('alldata',JSON.stringify({avail:availData,settings:settingsData,halls:hallsData}));
-      sessionStorage.setItem('alltime',Date.now().toString());
-    }
-    window._settings=settingsData;
-    window._hallDetails=hallsData;
-    allData=parseAPI(availData);
-    if(!allData.length)throw new Error('empty');
-    // Enrich with hall details
-    const map={};
-    (hallsData||[]).forEach(d=>{map[d.name]={city:d.city||'',kashrut:d.kashrut||'',access:d.access||'',seats:parseInt(d.seats)||0};});
-    allData.forEach(r=>{if(map[r.hall]){r.city=map[r.hall].city;r.kashrut=map[r.hall].kashrut;r.access=map[r.hall].access;r.seats=map[r.hall].seats;}});
-    populateFilters();
-    const t=new Date(),e=new Date();e.setDate(t.getDate()+365);
-    document.getElementById('filterFrom').value=t.toISOString().split('T')[0];
-    document.getElementById('filterTo').value=e.toISOString().split('T')[0];
-    document.getElementById('loading').style.display='none';
-    populateFilters();buildTable();loadSettings();
-  }catch(e){
-    document.getElementById('loading').style.display='none';
-    // Only show error if no data at all
-    if(!allData.length){
-      document.getElementById('errorMsg').style.display='block';
-      document.getElementById('errorMsg').textContent='שגיאה בטעינת הנתונים. ודא שהגיליון משותף ציבורית.';
-    }
-  }
-}
-fetchData();
-</script>
-</body>
-</html>
+  const hv=getChec
