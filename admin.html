@@ -367,14 +367,20 @@ function renderAdList(pos){
 function renderAdGallery(pos,adIdx,items){
   if(!items.length) return '<p style="font-size:0.75rem;color:#bbb;margin-bottom:6px">אין תמונות/סרטונים עדיין</p>';
   return items.map((item,ii)=>`
-    <div style="display:flex;gap:6px;margin-bottom:6px;align-items:flex-start">
-      <input type="url" value="${escHtml(item.url||'')}" placeholder="https://res.cloudinary.com/..." style="flex:1;padding:6px 8px;border:1px solid #ddd;border-radius:5px;font-family:Assistant;font-size:0.82rem" oninput="upAdMedia('${pos}',${adIdx},${ii},'url',this.value)"/>
-      <select onchange="upAdMedia('${pos}',${adIdx},${ii},'type',this.value)" style="padding:6px 8px;border:1px solid #ddd;border-radius:5px;font-family:Assistant;font-size:0.82rem;background:white">
-        <option value="image" ${item.type==='image'?'selected':''}>📸 תמונה</option>
-        <option value="video" ${item.type==='video'?'selected':''}>🎬 סרטון</option>
-      </select>
-      ${item.url?`<img src="${escHtml(item.url)}" style="max-width:60px;max-height:60px;border-radius:5px;object-fit:cover"/>`:''} 
-      <button onclick="delAdMedia('${pos}',${adIdx},${ii})" style="background:#fde8e8;color:#a32020;border:none;border-radius:5px;padding:4px 8px;cursor:pointer;font-size:0.78rem;white-space:nowrap">מחק</button>
+    <div style="border:1px solid #eee;border-radius:6px;padding:8px;margin-bottom:8px;background:#fafafa">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <span style="font-size:0.72rem;color:#999;font-weight:700">תמונה/סרטון ${ii+1}</span>
+        <button onclick="delAdMedia('${pos}',${adIdx},${ii})" style="background:#fde8e8;color:#a32020;border:none;border-radius:5px;padding:3px 8px;cursor:pointer;font-size:0.75rem">מחק</button>
+      </div>
+      <label style="font-size:0.7rem;color:#666;display:block;margin-bottom:2px">כתובת URL של התמונה/סרטון:</label>
+      <input type="url" value="${escHtml(item.url||'')}" placeholder="https://res.cloudinary.com/..." style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:5px;font-family:Assistant;font-size:0.82rem;margin-bottom:5px" oninput="upAdMedia('${pos}',${adIdx},${ii},'url',this.value)"/>
+      <div style="display:flex;gap:6px;align-items:center">
+        <select onchange="upAdMedia('${pos}',${adIdx},${ii},'type',this.value)" style="padding:6px 8px;border:1px solid #ddd;border-radius:5px;font-family:Assistant;font-size:0.82rem;background:white;flex:1">
+          <option value="image" ${item.type==='image'?'selected':''}>📸 תמונה</option>
+          <option value="video" ${item.type==='video'?'selected':''}>🎬 סרטון</option>
+        </select>
+        ${item.url?`<img src="${escHtml(item.url)}" style="max-width:50px;max-height:50px;border-radius:5px;object-fit:cover"/>`:''} 
+      </div>
     </div>
   `).join('');
 }
