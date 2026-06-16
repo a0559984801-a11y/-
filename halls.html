@@ -215,8 +215,8 @@ function setView(view){
 }
 
 function openModal(i){
+  if(i<0 || !halls[i]) return;
   currentHall=halls[i];
-  if(!currentHall) return;
   currentImageIndex=0;
 
   document.getElementById('modalTitle').textContent=currentHall.name;
