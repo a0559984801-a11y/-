@@ -7,7 +7,8 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Rubik',sans-serif;background:#f7f5f0;color:#1a1a1a;min-height:100vh;display:flex;flex-direction:column;font-weight:400;padding-bottom:2.5cm;}
+body{font-family:'Rubik',sans-serif;background:#f7f5f0;color:#1a1a1a;min-height:100vh;display:flex;flex-direction:column;font-weight:400;}
+body.has-bottom-ad{padding-bottom:2.5cm;}
 
 /* Hero Banner */
 #heroBanner{width:100%;height:55vh;min-height:320px;background-size:cover;background-position:center;color:white;padding:40px 20px;text-align:center;flex-shrink:0;display:flex;align-items:center;justify-content:center;flex-direction:column;position:relative;overflow:hidden;}
@@ -55,11 +56,12 @@ header h1{font-size:1.1rem;font-weight:700;}
   position:fixed;
   top:56px;
   right:-270px;
-  bottom:2.5cm;
+  bottom:0;
   z-index:600;
   box-shadow:-4px 0 20px rgba(0,0,0,0.25);
   transition:right 0.3s ease;
 }
+body.has-bottom-ad .sidebar{bottom:2.5cm;}
 .sidebar.open{right:0;}
 .sidebar-title{font-size:0.82rem;font-weight:700;color:#1a1a2e;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #1a1a2e;}
 .filter-group{margin-bottom:11px;}
@@ -95,14 +97,16 @@ header h1{font-size:1.1rem;font-weight:700;}
 #adSidebar img,#adSidebar video{width:100%;height:100%;object-fit:cover;}
 
 /* Table area */
-.table-area{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:8px;height:calc(100vh - 56px - 2.5cm);}
+.table-area{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:8px;height:calc(100vh - 56px);}
+body.has-bottom-ad .table-area{height:calc(100vh - 56px - 2.5cm);}
 
 .view-toggle{display:none;gap:8px;margin-bottom:8px;align-items:center;flex-shrink:0;}
 .view-btn{padding:5px 12px;border:1px solid #ddd;border-radius:5px;background:white;cursor:pointer;font-family:'Rubik',sans-serif;font-size:0.76rem;color:#555;}
 .view-btn.active{background:#1a1a2e;color:white;border-color:#1a1a2e;}
 .view-note{font-size:0.72rem;color:#999;}
 
-.table-scroll{overflow:auto;flex:1;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,0.07);padding-bottom:2.5cm;}
+.table-scroll{overflow:auto;flex:1;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,0.07);}
+body.has-bottom-ad .table-scroll{padding-bottom:2.5cm;}
 table{border-collapse:collapse;background:white;font-size:0.68rem;width:max-content;min-width:100%;}
 thead{position:sticky;top:0;z-index:10;}
 thead tr{background:#1a1a2e;color:white;}
@@ -120,7 +124,8 @@ th.date-col{text-align:right;min-width:100px;position:sticky;right:0;background:
 .cell-reserved{background:#fef3cd;color:#8a5c00;}
 
 /* Calendar */
-.calendar-view{display:none;overflow-y:auto;flex:1;padding-bottom:2.5cm;}
+.calendar-view{display:none;overflow-y:auto;flex:1;}
+body.has-bottom-ad .calendar-view{padding-bottom:2.5cm;}
 .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
 .cal-nav{padding:5px 12px;background:#1a1a2e;color:white;border:none;border-radius:5px;cursor:pointer;font-family:'Rubik',sans-serif;font-size:0.8rem;}
 .cal-title{font-size:0.9rem;font-weight:700;color:#1a1a2e;}
@@ -170,8 +175,15 @@ th.date-col{text-align:right;min-width:100px;position:sticky;right:0;background:
 .hall-field-value a{color:#1a1a2e;}
 
 /* Clickable hall header */
-th.hall-name-th{cursor:help;}
+th.hall-name-th{cursor:wait;}
 th.hall-name-th:hover{background:#2a2a4e;}
+
+/* Hall Fullscreen */
+.hall-fs-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:3000;align-items:center;justify-content:center;}
+.hall-fs-overlay.open{display:flex;}
+.hall-fs-close{position:absolute;top:20px;right:20px;background:white;color:#1a1a2e;border:none;width:45px;height:45px;border-radius:50%;font-size:1.5rem;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;}
+.hall-fs-nav-btn{background:rgba(255,255,255,0.2);color:white;border:none;width:50px;height:50px;border-radius:50%;font-size:1.5rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.hall-fs-nav-btn:hover{background:rgba(255,255,255,0.4);}
 
 /* Modal */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;}
@@ -189,7 +201,8 @@ th.hall-name-th:hover{background:#2a2a4e;}
   .main-layout{flex-direction:column;}
   .ad-sidebar{display:none;}
   .legend{display:none;}
-  .table-area{height:calc(100vh - 56px - 2.5cm);}
+  .table-area{height:calc(100vh - 56px);}
+  body.has-bottom-ad .table-area{height:calc(100vh - 56px - 2.5cm);}
   .hamburger-btn{display:inline-block;}
   .hamburger-label{display:inline-block;}
 }
@@ -200,8 +213,8 @@ th.hall-name-th:hover{background:#2a2a4e;}
 <!-- Hero Banner -->
 <div id="heroBanner">
   <img id="heroImg" src="" alt="לוגו"/>
-  <div id="heroText"></div>
-  <div id="heroSubtext"></div>
+  <div id="heroText">כל האולמות במקום אחד</div>
+  <div id="heroSubtext">בחרו את האולם המושלם לאירוע שלכם</div>
 </div>
 
 <header id="siteHeader">
@@ -333,12 +346,25 @@ th.hall-name-th:hover{background:#2a2a4e;}
 
 <!-- Hall Info Modal (hover preview) -->
 <div class="hall-modal-overlay" id="hallModalOverlay" onclick="closeHallModal()">
+
+<!-- Hall Fullscreen -->
+<div class="hall-fs-overlay" id="hallFsOverlay" onclick="closeHallFs(event)">
+  <button class="hall-fs-close" onclick="closeHallFs()">✕</button>
+  <div style="position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
+    <img id="hallFsImage" style="max-width:95%;max-height:95%;object-fit:contain;" onclick="event.stopPropagation()"/>
+    <div id="hallFsNav" style="display:none;position:absolute;top:50%;width:100%;display:flex;justify-content:space-between;padding:0 30px;transform:translateY(-50%);">
+      <button class="hall-fs-nav-btn" onclick="hallFsPrev(event)">‹</button>
+      <button class="hall-fs-nav-btn" onclick="hallFsNext(event)">›</button>
+    </div>
+    <div id="hallFsCounter" style="position:absolute;bottom:30px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.5);color:white;padding:8px 18px;border-radius:20px;font-size:0.9rem;"></div>
+  </div>
+</div>
   <div class="hall-modal" onclick="event.stopPropagation()">
     <div class="hall-modal-header">
       <h2 id="hallModalTitle"></h2>
     </div>
     <div class="hall-gallery" id="hallGallery" style="display:none;">
-      <img id="hallGalleryImg" class="hall-gallery-img"/>
+      <img id="hallGalleryImg" class="hall-gallery-img" onclick="openHallFullscreen()" style="cursor:zoom-in;"/>
       <div class="hall-gallery-nav" id="hallGalleryNav" style="display:none;">
         <button class="hall-gallery-btn" onclick="hallPrevImg(event)">‹</button>
         <button class="hall-gallery-btn" onclick="hallNextImg(event)">›</button>
@@ -678,6 +704,39 @@ function hallNextImg(e){
   e.stopPropagation();
   if(hallModalImgIdx<hallModalImages.length-1){hallModalImgIdx++;document.getElementById('hallGalleryImg').src=hallModalImages[hallModalImgIdx];updateHallGallery();}
 }
+function openHallFullscreen(){
+  if(!hallModalImages.length) return;
+  document.getElementById('hallFsImage').src=hallModalImages[hallModalImgIdx];
+  const nav=document.getElementById('hallFsNav');
+  nav.style.display=hallModalImages.length>1?'flex':'none';
+  document.getElementById('hallFsCounter').textContent=hallModalImages.length>1?`${hallModalImgIdx+1} / ${hallModalImages.length}`:'';
+  document.getElementById('hallFsOverlay').classList.add('open');
+}
+function closeHallFs(e){
+  if(!e||e.target===document.getElementById('hallFsOverlay'))
+    document.getElementById('hallFsOverlay').classList.remove('open');
+}
+function hallFsPrev(e){
+  e.stopPropagation();
+  if(hallModalImgIdx>0){
+    hallModalImgIdx--;
+    document.getElementById('hallFsImage').src=hallModalImages[hallModalImgIdx];
+    document.getElementById('hallFsCounter').textContent=`${hallModalImgIdx+1} / ${hallModalImages.length}`;
+    document.getElementById('hallGalleryImg').src=hallModalImages[hallModalImgIdx];
+    updateHallGallery();
+  }
+}
+function hallFsNext(e){
+  e.stopPropagation();
+  if(hallModalImgIdx<hallModalImages.length-1){
+    hallModalImgIdx++;
+    document.getElementById('hallFsImage').src=hallModalImages[hallModalImgIdx];
+    document.getElementById('hallFsCounter').textContent=`${hallModalImgIdx+1} / ${hallModalImages.length}`;
+    document.getElementById('hallGalleryImg').src=hallModalImages[hallModalImgIdx];
+    updateHallGallery();
+  }
+}
+
 function closeHallModal(){
   document.getElementById('hallModalOverlay').classList.remove('open');
 }
@@ -768,28 +827,30 @@ function loadSettings(){
   const adBottom=document.getElementById('adBottom');
   if(adBottom){
     const showBottom=s.showAdBottom!=='false'&&s.showAdBottom!==false;
-    if(showBottom){
+    const items=showBottom&&s.adItemsBottom?JSON.parse(s.adItemsBottom):[];
+    if(showBottom&&items.length){
       adBottom.style.display='flex';
-      const items=s.adItemsBottom?JSON.parse(s.adItemsBottom):[];
-      if(items.length){
-        adRotators.Bottom=0;
-        adGalleryIndex.Bottom=0;
-        const ad=items[0];
-        const gallery=ad.gallery||[];
-        if(gallery.length>0){
-          updateBottomAdMedia(ad,gallery[0]);
-          const itemDuration=(ad.duration||5)*1000/gallery.length;
-          clearTimeout(adTimers.Bottom);
-          adTimers.Bottom=setTimeout(()=>rotateAd('Bottom',items),itemDuration);
-        } else {
-          updateBottomAd(ad);
-          clearTimeout(adTimers.Bottom);
-          if(items.length>1){
-            adTimers.Bottom=setTimeout(()=>rotateAd('Bottom',items),(ad.duration||5)*1000);
-          }
+      document.body.classList.add('has-bottom-ad');
+      adRotators.Bottom=0;
+      adGalleryIndex.Bottom=0;
+      const ad=items[0];
+      const gallery=ad.gallery||[];
+      if(gallery.length>0){
+        updateBottomAdMedia(ad,gallery[0]);
+        const itemDuration=(ad.duration||5)*1000/gallery.length;
+        clearTimeout(adTimers.Bottom);
+        adTimers.Bottom=setTimeout(()=>rotateAd('Bottom',items),itemDuration);
+      } else {
+        updateBottomAd(ad);
+        clearTimeout(adTimers.Bottom);
+        if(items.length>1){
+          adTimers.Bottom=setTimeout(()=>rotateAd('Bottom',items),(ad.duration||5)*1000);
         }
       }
-    } else adBottom.style.display='none';
+    } else {
+      adBottom.style.display='none';
+      document.body.classList.remove('has-bottom-ad');
+    }
   }
   const adSide=document.getElementById('adSidebar');
   if(adSide){
