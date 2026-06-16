@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מידע על אולמות</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Rubik',sans-serif;background:#f7f5f0;min-height:100vh;}
+header{background:#1a1a2e;color:white;padding:12px 20px;display:flex;align-items:center;gap:16px;}
+.btn-back{padding:6px 14px;background:#e8b86d;color:#1a1a2e;border:none;border-radius:6px;cursor:pointer;font-family:'Rubik',sans-serif;font-weight:700;font-size:0.82rem;text-decoration:none;}
+header h1{font-size:1.1rem;font-weight:700;}
+.content{padding:20px;max-width:960px;margin:0 auto;}
+
+/* View Controls */
+.view-controls{display:flex;gap:8px;margin-bottom:14px;justify-content:center;}
+.view-btn{padding:8px 16px;border:1px solid #ddd;border-radius:6px;background:white;cursor:pointer;font-family:'Rubik',sans-serif;font-size:0.85rem;color:#555;font-weight:600;transition:all 0.2s;}
+.view-btn:hover{background:#f7f5f0;border-color:#1a1a2e;}
+.view-btn.active{background:#1a1a2e;color:white;border-color:#1a1a2e;}
+
+/* Grid Layouts */
+.halls-grid{display:grid;gap:14px;}
+.halls-grid.grid-large{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));}
+.halls-grid.grid-small{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));}
+.halls-grid.list-view{grid-template-columns:1fr;gap:6px;}
+.halls-grid.list-view .hall-card{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:14px 16px;gap:10px;min-height:0;border:none;border-radius:8px;box-shadow:none;position:relative;overflow:hidden;background-size:cover;background-position:center;}
+.halls-grid.list-view .hall-card::before{content:'';position:absolute;top:0;right:0;bottom:0;left:0;background:rgba(255,255,255,0.78);z-index:0;}
+.halls-grid.list-view .hall-card:hover::before{background:rgba(255,255,255,0.68);}
+.halls-grid.list-view .hall-card .list-thumb,.halls-grid.list-view .hall-card .list-thumb-empty{display:none;}
+.halls-grid.list-view .hall-card-info{display:none;}
+.halls-grid.list-view .hall-card h3{display:none;}
+.halls-grid.list-view .hall-card p{display:none;}
+.halls-grid.list-view .hall-card > *{position:relative;z-index:1;}
+.halls-grid.list-view .hall-card .hall-name-text{font-weight:700;font-size:0.95rem;color:#1a1a2e;text-align:right;text-shadow:0 1px 3px rgba(255,255,255,0.8);}
+.halls-grid.list-view .hall-card .list-details-btn{font-size:0.75rem;color:#1a1a2e;background:rgba(232,184,109,0.9);padding:4px 12px;border-radius:5px;white-space:nowrap;text-align:center;font-weight:600;}
+.halls-grid.list-view .hall-card .hall-city-text{font-size:0.85rem;color:#444;text-align:left;text-shadow:0 1px 3px rgba(255,255,255,0.8);font-weight:600;}
+
+.halls-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;}
+.hall-card{background:white;border-radius:10px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.08);cursor:pointer;transition:box-shadow 0.2s;border:2px solid transparent;}
+.hall-card:hover{box-shadow:0 4px 16px rgba(0,0,0,0.14);border-color:#1a1a2e;}
+.hall-card h3{font-size:0.95rem;font-weight:700;color:#1a1a2e;margin-bottom:6px;}
+.hall-card p{font-size:0.78rem;color:#888;}
+.hall-card img{width:100%;height:100px;object-fit:cover;border-radius:6px;margin-bottom:8px;}
+.empty-state{text-align:center;padding:40px;color:#888;grid-column:1/-1;}
+
+/* Grid views with background image */
+.halls-grid.grid-large .hall-card,.halls-grid.grid-small .hall-card{position:relative;overflow:hidden;background-size:cover;background-position:center;min-height:120px;display:flex;flex-direction:column;justify-content:center;text-align:center;}
+.halls-grid.grid-large .hall-card::before,.halls-grid.grid-small .hall-card::before{content:'';position:absolute;top:0;right:0;bottom:0;left:0;background:rgba(255,255,255,0.78);z-index:0;}
+.halls-grid.grid-large .hall-card:hover::before,.halls-grid.grid-small .hall-card:hover::before{background:rgba(255,255,255,0.65);}
+.halls-grid.grid-large .hall-card > *,.halls-grid.grid-small .hall-card > *{position:relative;z-index:1;}
+.halls-grid.grid-large .hall-card img,.halls-grid.grid-small .hall-card img{display:none;}
+.halls-grid.grid-large .hall-card h3,.halls-grid.grid-small .hall-card h3{text-shadow:0 1px 4px rgba(255,255,255,0.9);}
+.halls-grid.grid-large .hall-card p,.halls-grid.grid-small .hall-card p{color:#444;text-shadow:0 1px 3px rgba(255,255,255,0.9);}
+
+/* Modal Overlay */
+.modal-overlay{display:none;position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,0.6);z-index:2000;align-items:center;justify-content:center;padding:16px;}
+.modal-overlay.open{display:flex !important;}
+
+/* Main Modal */
+.modal{background:white;border-radius:15px;width:100%;max-width:650px;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;position:relative;box-shadow:0 10px 40px rgba(0,0,0,0.3);}
+
+/* Header with counter background */
+.modal-header{text-align:center;padding:14px 20px 10px;border-bottom:1px solid #f0ece4;position:relative;overflow:hidden;}
+.modal-header::before{content:'';position:absolute;top:0;right:0;bottom:0;left:0;opacity:0.03;background-image:linear-gradient(45deg,#1a1a2e 25%,transparent 25%,transparent 75%,#1a1a2e 75%,#1a1a2e);background-size:40px 40px;z-index:0;}
+.modal-header h2{font-size:1.3rem;font-weight:700;color:#1a1a2e;position:relative;z-index:1;}
+
+/* Image Gallery */
+.gallery-container{position:relative;background:#f7f5f0;padding:8px;overflow:hidden;}
+.gallery-image{width:100%;max-height:170px;object-fit:cover;border-radius:10px;}
+.gallery-nav{position:absolute;top:50%;width:100%;display:flex;justify-content:space-between;align-items:center;transform:translateY(-50%);padding:0 12px;z-index:2;}
+.gallery-btn{background:rgba(26,26,46,0.7);color:white;border:none;width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:1.2rem;display:flex;align-items:center;justify-content:center;transition:background 0.2s;}
+.gallery-btn:hover{background:rgba(26,26,46,0.9);}
+.gallery-btn:disabled{opacity:0.3;cursor:not-allowed;}
+.gallery-dots{text-align:center;padding:8px 0;font-size:0.8rem;color:#999;}
+.gallery-image{cursor:pointer;}
+.gallery-image:hover{opacity:0.95;}
+
+/* Modal Content */
+.modal-content{flex:1;overflow-y:auto;padding:12px;background:white;}
+
+/* Field Row */
+.field-row{display:flex;gap:12px;padding:7px 0;border-bottom:1px solid #f0ece4;align-items:flex-start;}
+.field-row:last-child{border-bottom:none;}
+.field-label{font-weight:700;color:#555;font-size:0.85rem;min-width:100px;white-space:nowrap;padding-top:2px;}
+.field-value{color:#333;font-size:0.88rem;flex:1;word-break:break-word;line-height:1.4;}
+.field-value a{color:#1a1a2e;text-decoration:underline;}
+
+/* Search Bar */
+.search-bar{margin-bottom:14px;}
+.search-bar input{width:100%;padding:9px 14px;border:1px solid #ddd;border-radius:8px;font-family:'Rubik',sans-serif;font-size:0.88rem;background:white;}
+
+/* Fullscreen Image */
+.fullscreen-overlay{display:none;position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,0.95);z-index:200;align-items:center;justify-content:center;}
+.fullscreen-overlay.open{display:flex;}
+.fullscreen-container{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+.fullscreen-image{max-width:95%;max-height:95%;object-fit:contain;}
+.fs-close{position:absolute;top:20px;right:20px;background:white;color:#1a1a2e;border:none;width:45px;height:45px;border-radius:50%;font-size:1.5rem;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;}
+.fs-nav{position:absolute;top:50%;width:100%;display:flex;justify-content:space-between;padding:0 30px;transform:translateY(-50%);z-index:10;}
+.fs-nav-btn{background:rgba(255,255,255,0.2);color:white;border:none;width:50px;height:50px;border-radius:50%;font-size:1.5rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;}
+.fs-nav-btn:hover{background:rgba(255,255,255,0.4);}
+.fs-nav-btn:disabled{opacity:0.3;cursor:not-allowed;}
+.fs-counter{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.5);color:white;padding:10px 20px;border-radius:20px;font-size:0.9rem;}
+</style>
+</head>
+<body>
+<header>
+  <a href="index.html" class="btn-back">← חזרה</a>
+  <h1>מידע על אולמות חתונה</h1>
+</header>
+<div class="content">
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="🔍 חפש אולם לפי שם, עיר, כשרות..." oninput="filterHalls(this.value)"/>
+  </div>
+  
+  <!-- View Toggle -->
+  <div class="view-controls">
+    <button class="view-btn" id="btnList" onclick="setView('list')">📋 רשימה</button>
+    <button class="view-btn active" id="btnGridLarge" onclick="setView('grid-large')">⊞ רשת גדולה</button>
+    <button class="view-btn" id="btnGridSmall" onclick="setView('grid-small')">⊟ רשת קטנה</button>
+  </div>
+  
+  <div class="halls-grid" id="hallsGrid">
+    <div class="empty-state">טוען...</div>
+  </div>
+</div>
+
+<!-- Main Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 id="modalTitle"></h2>
+    </div>
+    <div class="gallery-container" id="galleryContainer" style="display:none;">
+      <img id="galleryImage" class="gallery-image" onclick="openFullscreen(currentImageIndex)"/>
+      <div class="gallery-nav" id="galleryNav" style="display:none;">
+        <button class="gallery-btn" id="galleryPrev" onclick="prevImage()">‹</button>
+        <button class="gallery-btn" id="galleryNext" onclick="nextImage()">›</button>
+      </div>
+      <div class="gallery-dots" id="galleryDots"></div>
+    </div>
+    <div class="modal-content">
+      <div id="modalFields"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Fullscreen Image -->
+<div class="fullscreen-overlay" id="fullscreenOverlay" onclick="closeFullscreen(event)">
+  <button class="fs-close" onclick="closeFullscreen()">✕</button>
+  <div class="fullscreen-container">
+    <img id="fullscreenImage" class="fullscreen-image" onclick="event.stopPropagation()"/>
+    <div class="fs-nav" id="fsNav" style="display:none;">
+      <button class="fs-nav-btn" id="fsPrev" onclick="prevImageFS()">‹</button>
+      <button class="fs-nav-btn" id="fsNext" onclick="nextImageFS()">›</button>
+    </div>
+    <div class="fs-counter" id="fsCounter"></div>
+  </div>
+</div>
+
+<script>
+const API_URL='https://script.google.com/macros/s/AKfycbziYMBlMR3C_QbmPmDESOkYBWPSGwJ4f2sja-Os4BKj7Xm5KLgdNkhEmY4w3_5Lq_RtnA/exec';
+let halls=[],currentHall=null,currentImageIndex=0,currentView='grid-large';
+
+async function loadHalls(){
+  try{
+    const cached=sessionStorage.getItem('alldata');
+    if(cached){
+      const bundle=JSON.parse(cached);
+      const cachedHalls=(bundle.halls||[]).filter(h=>h.name);
+      if(cachedHalls.length){
+        halls=cachedHalls;
+        renderGrid();
+        return;
+      }
+    }
+    const res=await fetch(API_URL+'?action=halls');
+    halls=(await res.json()).filter(h=>h.name);
+    renderGrid();
+  }catch(e){
+    console.error('loadHalls error:',e);
+    document.getElementById('hallsGrid').innerHTML='<div class="empty-state">שגיאה בטעינה. נסה לרענן.</div>';
+  }
+}
+
+function filterHalls(q){
+  const term=q.trim().toLowerCase();
+  const filtered=!term ? halls : halls.filter(h=>
+    (h.name||'').toLowerCase().includes(term)||
+    (h.city||'').toLowerCase().includes(term)||
+    (h.kashrut||'').toLowerCase().includes(term)
+  );
+  renderGrid(filtered);
+}
+
+function renderGrid(list){
+  list=list||halls;
+  const grid=document.getElementById('hallsGrid');
+  if(!halls.length){
+    grid.innerHTML='<div class="empty-state">אין פרטי אולמות עדיין</div>';
+    return;
+  }
+  if(!list.length){
+    grid.innerHTML='<div class="empty-state">לא נמצאו אולמות</div>';
+    return;
+  }
+  
+  // Set grid class based on view
+  grid.className='halls-grid '+currentView;
+  
+  grid.innerHTML=list.map((h,i)=>{
+    const hallIndex=halls.findIndex(hh=>hh.name===h.name);
+    const isListView=currentView==='list-view';
+    const isGrid=currentView==='grid-large'||currentView==='grid-small';
+    return `
+    <div class="hall-card" data-index="${hallIndex}" data-name="${h.name}" data-city="${h.city||''}"${(isListView||isGrid)&&h.img?` style="background-image:url('${h.img}')"`:''}>
+      ${!isListView&&h.img?`<img src="${h.img}" alt="${h.name}"/>`:''}
+      ${isListView?`<span class="hall-name-text">${h.name}</span>`:''}
+      <div${isListView?' class="hall-card-info"':''}>
+        ${!isListView?`<h3>${h.name}</h3>`:''}
+        ${!isListView?`<p>${h.desc?h.desc.substring(0,60)+'...':'לחץ לפרטים'}</p>`:''}
+        ${!isListView&&h.city?`<p style="margin-top:4px;font-size:0.72rem;color:#aaa">📍 ${h.city}</p>`:''}
+      </div>
+      ${isListView?`<span class="list-details-btn">לחץ לפרטים</span>`:''}
+      ${isListView?`<span class="hall-city-text">${h.city?'📍 '+h.city:''}</span>`:''}
+    </div>
+  `;}).join('');
+
+  // Attach click handlers via event delegation (more reliable than inline onclick)
+  grid.querySelectorAll('.hall-card').forEach(card=>{
+    card.addEventListener('click',function(){
+      const idx=parseInt(this.getAttribute('data-index'));
+      openModal(idx);
+    });
+  });
+}
+
+function setView(view){
+  currentView=view;
+  // Update button states
+  document.getElementById('btnList').classList.toggle('active',view==='list-view');
+  document.getElementById('btnGridLarge').classList.toggle('active',view==='grid-large');
+  document.getElementById('btnGridSmall').classList.toggle('active',view==='grid-small');
+  // Re-render grid
+  renderGrid();
+}
+
+function openModal(i){
+  if(i<0 || !halls[i]) return;
+  currentHall=halls[i];
+  currentImageIndex=0;
+
+  document.getElementById('modalTitle').textContent=currentHall.name;
+
+  // Gallery - handle images as array or pipe-separated string
+  let imgArr=currentHall.images;
+  if(typeof imgArr==='string') imgArr=imgArr.split('|');
+  if(!Array.isArray(imgArr)) imgArr=[];
+  const images=imgArr.filter(img=>img && (''+img).trim());
+  const galleryContainer=document.getElementById('galleryContainer');
+  if(images.length){
+    document.getElementById('galleryImage').src=images[0];
+    galleryContainer.style.display='block';
+    currentHall._imgArr=images;
+    updateGalleryUI(images);
+  } else {
+    galleryContainer.style.display='none';
+    currentHall._imgArr=[];
+  }
+
+  // Fields
+  const fields=document.getElementById('modalFields');
+  const rows=[];
+  if(currentHall.city) rows.push(['📍 עיר',currentHall.city]);
+  if(currentHall.street) rows.push(['🏘️ רחוב',currentHall.street]);
+  if(currentHall.phone) rows.push(['📞 טלפון',`<a href="tel:${currentHall.phone}">${currentHall.phone}</a>`]);
+  if(currentHall.kashrut) rows.push(['✡️ כשרות',currentHall.kashrut]);
+  if(currentHall.seats) rows.push(['👥 מקומות',currentHall.seats]);
+  if(currentHall.access) rows.push(['♿ נגישות',currentHall.access]);
+  if(currentHall.desc) rows.push(['תיאור',currentHall.desc]);
+  if(currentHall.links && currentHall.links.length){
+    rows.push(['קישורים',(currentHall.links||[]).map(l=>`<a href="${l.url}" target="_blank">${l.label||l.url}</a>`).join(' ')]);
+  }
+  // Custom fields
+  if(currentHall.customFields && currentHall.customFields.length){
+    currentHall.customFields.filter(f=>f.label && f.value).forEach(f=>{
+      const val=f.type==='link'?`<a href="${f.value}" target="_blank">${f.value}</a>`:f.value;
+      rows.push([f.label,val]);
+    });
+  }
+
+  fields.innerHTML=rows.map(([label,val])=>`
+    <div class="field-row">
+      <span class="field-label">${label}:</span>
+      <span class="field-value">${val}</span>
+    </div>
+  `).join('');
+
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function updateGalleryUI(images){
+  document.getElementById('galleryNav').style.display=images.length>1?'flex':'none';
+  document.getElementById('galleryPrev').disabled=currentImageIndex===0;
+  document.getElementById('galleryNext').disabled=currentImageIndex===images.length-1;
+  document.getElementById('galleryDots').textContent=images.length>1?`${currentImageIndex+1} / ${images.length}`:'';
+}
+
+function prevImage(){
+  const images=currentHall._imgArr||[];
+  if(currentImageIndex>0){
+    currentImageIndex--;
+    document.getElementById('galleryImage').src=images[currentImageIndex];
+    updateGalleryUI(images);
+  }
+}
+
+function nextImage(){
+  const images=currentHall._imgArr||[];
+  if(currentImageIndex<images.length-1){
+    currentImageIndex++;
+    document.getElementById('galleryImage').src=images[currentImageIndex];
+    updateGalleryUI(images);
+  }
+}
+
+function openFullscreen(imgIndex){
+  const images=currentHall._imgArr||[];
+  currentImageIndex=imgIndex;
+  document.getElementById('fullscreenImage').src=images[imgIndex];
+  document.getElementById('fsNav').style.display=images.length>1?'flex':'none';
+  document.getElementById('fsPrev').disabled=imgIndex===0;
+  document.getElementById('fsNext').disabled=imgIndex===images.length-1;
+  document.getElementById('fsCounter').textContent=`${imgIndex+1} / ${images.length}`;
+  document.getElementById('fullscreenOverlay').classList.add('open');
+}
+
+function prevImageFS(){
+  const images=currentHall._imgArr||[];
+  if(currentImageIndex>0){
+    currentImageIndex--;
+    document.getElementById('fullscreenImage').src=images[currentImageIndex];
+    document.getElementById('fsPrev').disabled=currentImageIndex===0;
+    document.getElementById('fsNext').disabled=false;
+    document.getElementById('fsCounter').textContent=`${currentImageIndex+1} / ${images.length}`;
+  }
+}
+
+function nextImageFS(){
+  const images=currentHall._imgArr||[];
+  if(currentImageIndex<images.length-1){
+    currentImageIndex++;
+    document.getElementById('fullscreenImage').src=images[currentImageIndex];
+    document.getElementById('fsPrev').disabled=false;
+    document.getElementById('fsNext').disabled=currentImageIndex===images.length-1;
+    document.getElementById('fsCounter').textContent=`${currentImageIndex+1} / ${images.length}`;
+  }
+}
+
+function closeModal(e){
+  if(e.target===document.getElementById('modalOverlay'))
+    document.getElementById('modalOverlay').classList.remove('open');
+}
+
+function closeFullscreen(e){
+  if(!e || e.target===document.getElementById('fullscreenOverlay'))
+    document.getElementById('fullscreenOverlay').classList.remove('open');
+}
+
+loadHalls();
+</script>
+</body>
+</html>
