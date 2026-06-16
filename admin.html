@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ניהול אתר</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Assistant',sans-serif;background:#f0f0f0;min-height:100vh;}
+header{background:#1a1a2e;color:white;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.1rem;font-weight:700;}
+.btn-back{padding:6px 14px;background:#e8b86d;color:#1a1a2e;border:none;border-radius:6px;cursor:pointer;font-family:'Assistant',sans-serif;font-weight:700;font-size:0.82rem;text-decoration:none;}
+.layout{display:flex;min-height:calc(100vh - 50px);}
+.nav{width:200px;background:#1a1a2e;padding:12px;}
+.nav-btn{display:block;width:100%;padding:10px 12px;color:#ccc;border:none;background:none;border-radius:6px;font-size:0.85rem;margin-bottom:4px;cursor:pointer;text-align:right;font-family:'Assistant',sans-serif;}
+.nav-btn:hover,.nav-btn.active{background:#2a2a4e;color:white;}
+.content{flex:1;padding:20px;max-width:700px;}
+.panel{display:none;}.panel.active{display:block;}
+.panel h2{font-size:1rem;font-weight:700;color:#1a1a2e;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid #1a1a2e;}
+.card{background:white;border-radius:8px;padding:16px;margin-bottom:14px;box-shadow:0 1px 6px rgba(0,0,0,0.07);}
+label{font-size:0.78rem;color:#666;font-weight:600;display:block;margin-bottom:4px;margin-top:10px;}
+label:first-child{margin-top:0;}
+input[type=text],input[type=email],input[type=password],input[type=url],input[type=number],textarea,select{width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-family:'Assistant',sans-serif;font-size:0.88rem;margin-bottom:4px;}
+textarea{resize:vertical;min-height:70px;}
+.btn-save{padding:9px 20px;background:#1a1a2e;color:white;border:none;border-radius:6px;cursor:pointer;font-family:'Assistant',sans-serif;font-weight:600;font-size:0.88rem;margin-top:8px;}
+.btn-save:disabled{opacity:0.6;cursor:wait;}
+.ok{color:#1a7a45;font-size:0.78rem;margin-top:6px;display:none;}
+.err{color:#e74c3c;font-size:0.78rem;margin-top:4px;display:none;}
+.warn{background:#fef3cd;border:1px solid #f39c12;border-radius:6px;padding:10px 14px;font-size:0.82rem;color:#8a5c00;margin-bottom:12px;}
+.toggle-row{display:flex;align-items:center;gap:10px;margin:10px 0;}
+.toggle{width:44px;height:24px;border-radius:12px;cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0;}
+.toggle-knob{position:absolute;top:2px;width:20px;height:20px;border-radius:50%;background:white;transition:right 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.2);}
+.upload-box{border:2px dashed #ddd;border-radius:8px;padding:14px;text-align:center;cursor:pointer;color:#999;font-size:0.82rem;margin-bottom:6px;}
+.upload-box:hover{border-color:#1a1a2e;}
+.preview-img{max-width:100%;max-height:100px;border-radius:6px;margin-top:6px;display:none;}
+.loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,0.8);z-index:9999;display:flex;align-items:center;justify-content:center;font-size:1rem;color:#1a1a2e;}
+.btn-add-field{width:100%;padding:7px;background:#f0f0f0;color:#444;border:1px dashed #bbb;border-radius:6px;cursor:pointer;font-family:'Assistant',sans-serif;font-size:0.8rem;margin-top:6px;}
+.btn-add-field:hover{background:#e8e4dc;}
+.custom-field-row{background:white;border:1px solid #e8e4dc;border-radius:7px;padding:8px 10px;margin-bottom:7px;}
+.cf-top-row{display:flex;gap:6px;align-items:center;margin-bottom:6px;}
+.cf-input{padding:6px 8px;border:1px solid #ddd;border-radius:5px;font-family:'Assistant',sans-serif;font-size:0.82rem;}
+.cf-label{flex:1;min-width:0;}
+.cf-value{width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:5px;font-family:'Assistant',sans-serif;font-size:0.82rem;}
+.cf-select{padding:6px 7px;border:1px solid #ddd;border-radius:5px;font-family:'Assistant',sans-serif;font-size:0.8rem;background:white;flex-shrink:0;}
+.cf-del{background:#fde8e8;color:#a32020;border:none;border-radius:5px;width:28px;height:28px;cursor:pointer;font-size:0.85rem;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+
+/* Ad carousel */
+.ad-item{border:1px solid #e0ddd6;border-radius:8px;padding:12px;margin-bottom:10px;background:#fafafa;position:relative;}
+.ad-item-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.ad-item-num{font-size:0.78rem;font-weight:700;color:#1a1a2e;background:#e8e4dc;border-radius:12px;padding:2px 10px;}
+.ad-item-del{background:#fde8e8;color:#a32020;border:none;border-radius:5px;padding:3px 10px;cursor:pointer;font-size:0.78rem;font-family:'Assistant',sans-serif;}
+.ad-item label{font-size:0.75rem;color:#666;font-weight:600;display:block;margin-bottom:3px;margin-top:8px;}
+.ad-item label:first-of-type{margin-top:0;}
+.ad-item input[type=text],.ad-item input[type=url]{width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:6px;font-family:'Assistant',sans-serif;font-size:0.85rem;margin-bottom:0;}
+.ad-duration-row{display:flex;align-items:center;gap:8px;margin-top:8px;}
+.ad-duration-row label{margin:0;white-space:nowrap;}
+.ad-duration-row input{width:70px!important;text-align:center;}
+.ad-duration-row span{font-size:0.78rem;color:#888;}
+.btn-add-ad{width:100%;padding:8px;background:#f0f0f0;color:#444;border:1px dashed #bbb;border-radius:6px;cursor:pointer;font-family:'Assistant',sans-serif;font-size:0.82rem;margin-top:4px;}
+.btn-add-ad:hover{background:#e8e4dc;}
+</style>
+</head>
+<body>
+<div class="loading-overlay" id="loadingOverlay">טוען נתונים מהשרת...</div>
+<header>
+  <h1>🔐 לוח ניהול</h1>
+  <a href="index.html" class="btn-back">← חזרה לאתר</a>
+</header>
+<div class="layout">
+  <div class="nav">
+    <button class="nav-btn active" onclick="show('halls',event)">🏛 פרטי אולמות</button>
+    <button class="nav-btn" onclick="show('logo',event)">🖼 לוגו וכותרת</button>
+    <button class="nav-btn" onclick="show('ad',event)">📢 פרסומות</button>
+    <button class="nav-btn" onclick="show('contact',event)">📬 יצירת קשר</button>
+    <button class="nav-btn" onclick="show('security',event)">🔑 סיסמה</button>
+  </div>
+  <div class="content">
+
+    <!-- HALLS -->
+    <div class="panel active" id="panel-halls">
+      <h2>🏛 פרטי אולמות</h2>
+      <div class="card">
+        <p style="font-size:0.82rem;color:#666;margin-bottom:12px">הוסף פרטים לכל אולם. נתונים אלו משמשים לסינון באתר וגם בעמוד "מידע על אולמות".</p>
+        <button class="btn-save" onclick="addHall()" style="margin-top:0;margin-bottom:14px">+ הוסף אולם</button>
+        <div id="hallsList"></div>
+        <button class="btn-save" id="saveHallsBtn" onclick="saveHalls()">💾 שמור הכל לשרת</button>
+        <div class="ok" id="hallsOk">✓ נשמר לשרת! כולם יראו את השינוי</div>
+      </div>
+    </div>
+
+    <!-- LOGO -->
+    <div class="panel" id="panel-logo">
+      <h2>🖼 לוגו וכותרת</h2>
+      <div class="card">
+        <label>שם האתר (כותרת ראשית על השער)</label>
+        <input type="text" id="siteName"/>
+        <label>תת-כותרת על השער</label>
+        <input type="text" id="heroSubtitle" placeholder="בחרו את האולם המושלם לאירוע שלכם"/>
+        <label>תמונת שער — קישור Cloudinary</label>
+        <p style="font-size:0.72rem;color:#999;margin-bottom:6px">התמונה תוצג כשער מרשים מתחת לסרגל הניווט עם הכיתוב מעליה</p>
+        <input type="url" id="logoUrl" placeholder="https://res.cloudinary.com/..."/>
+        <button type="button" onclick="previewUrl('logoUrl','logoPreview')" style="padding:6px 14px;background:#eee;border:none;border-radius:6px;cursor:pointer;font-family:Assistant;font-size:0.82rem;margin-bottom:8px;">תצוגה מקדימה</button>
+        <img id="logoPreview" class="preview-img"/>
+        <p style="font-size:0.72rem;color:#999;margin-top:4px">להעלאת תמונה: <a href="https://cloudinary.com" target="_blank">cloudinary.com</a> ← העלה תמונה ← העתק URL אופטימלי</p>
+        <label>צבע רקע סרגל ניווט</label>
+        <input type="color" id="headerColor" value="#1a1a2e"/>
+        <button class="btn-save" onclick="saveLogo()">💾 שמור לשרת</button>
+        <div class="ok" id="logoOk">✓ נשמר!</div>
+      </div>
+    </div>
+
+    <!-- ADS -->
+    <div class="panel" id="panel-ad">
+      <h2>📢 ניהול פרסומות</h2>
+
+      <!-- TOP -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <p style="font-weight:700;font-size:0.88rem">⬆️ פרסומת עליונה</p>
+          <div class="toggle-row" style="margin:0">
+            <span style="font-size:0.82rem">הצג</span>
+            <div class="toggle" id="tgTop" onclick="tgAd('Top')" style="background:#2ecc71"><div class="toggle-knob" id="knTop" style="right:2px"></div></div>
+            <span id="stTop" style="font-size:0.78rem;color:#2ecc71">פעיל</span>
+          </div>
+        </div>
+        <div id="adListTop"></div>
+        <button class="btn-add-ad" onclick="addAd('Top')">+ הוסף פרסומת</button>
+      </div>
+
+      <!-- BOTTOM -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <p style="font-weight:700;font-size:0.88rem">⬇️ פרסומת תחתונה</p>
+          <div class="toggle-row" style="margin:0">
+            <span style="font-size:0.82rem">הצג</span>
+            <div class="toggle" id="tgBottom" onclick="tgAd('Bottom')" style="background:#2ecc71"><div class="toggle-knob" id="knBottom" style="right:2px"></div></div>
+            <span id="stBottom" style="font-size:0.78rem;color:#2ecc71">פעיל</span>
+          </div>
+        </div>
+        <div id="adListBottom"></div>
+        <button class="btn-add-ad" onclick="addAd('Bottom')">+ הוסף פרסומת</button>
+      </div>
+
+      <!-- SIDE -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <p style="font-weight:700;font-size:0.88rem">➡️ פרסומת צדדית</p>
+          <div class="toggle-row" style="margin:0">
+            <span style="font-size:0.82rem">הצג</span>
+            <div class="toggle" id="tgSide" onclick="tgAd('Side')" style="background:#2ecc71"><div class="toggle-knob" id="knSide" style="right:2px"></div></div>
+            <span id="stSide" style="font-size:0.78rem;color:#2ecc71">פעיל</span>
+          </div>
+        </div>
+        <div id="adListSide"></div>
+        <button class="btn-add-ad" onclick="addAd('Side')">+ הוסף פרסומת</button>
+      </div>
+
+      <button class="btn-save" onclick="saveAds()">💾 שמור הכל לשרת</button>
+      <div class="ok" id="adOk">✓ נשמר!</div>
+    </div>
+
+    <!-- CONTACT -->
+    <div class="panel" id="panel-contact">
+      <h2>📬 יצירת קשר</h2>
+      <div class="card">
+        <label>מייל ליצירת קשר</label>
+        <input type="email" id="contactEmail"/>
+        <button class="btn-save" onclick="saveContact()">💾 שמור לשרת</button>
+        <div class="ok" id="contactOk">✓ נשמר!</div>
+      </div>
+    </div>
+
+    <!-- SECURITY -->
+    <div class="panel" id="panel-security">
+      <h2>🔑 שינוי סיסמה</h2>
+      <div class="warn">⚠️ שמור את הסיסמה החדשה במקום בטוח!</div>
+      <div class="card">
+        <label>סיסמה נוכחית</label>
+        <input type="password" id="p0"/>
+        <label>סיסמה חדשה</label>
+        <input type="password" id="p1"/>
+        <label>אישור סיסמה</label>
+        <input type="password" id="p2"/>
+        <button class="btn-save" onclick="changePass()">💾 שנה סיסמה</button>
+        <div class="ok" id="passOk">✓ הסיסמה שונתה!</div>
+        <div class="err" id="passErr"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const API_URL='https://script.google.com/macros/s/AKfycbziYMBlMR3C_QbmPmDESOkYBWPSGwJ4f2sja-Os4BKj7Xm5KLgdNkhEmY4w3_5Lq_RtnA/exec';
+
+let settings={}, halls=[];
+let adState={Top:true,Bottom:true,Side:true};
+let adItems={Top:[],Bottom:[],Side:[]};
+let logoData='';
+
+function show(name,e){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  e.target.classList.add('active');
+}
+function showOk(id){const el=document.getElementById(id);el.style.display='block';setTimeout(()=>el.style.display='none',2500);}
+
+function prevImg(input,prevId,dataVar){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const p=document.getElementById(prevId);
+    p.src=e.target.result;p.style.display='block';
+    if(dataVar==='logoData')logoData=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// Save to server via GET (avoids CORS)
+async function saveToServer(action, params) {
+  let url = API_URL + '?action=' + action;
+  for (const key in params) {
+    const val = params[key] || '';
+    // Skip base64 images in URL - too long
+    if (val.startsWith('data:')) continue;
+    url += '&' + encodeURIComponent(key) + '=' + encodeURIComponent(val);
+  }
+  try { await fetch(url); } catch(e) { console.log('save error', e); }
+}
+
+async function postData(type, payload) {
+  if (type === 'halls') {
+    await saveToServer('saveHalls', {data: JSON.stringify(payload)});
+  } else if (type === 'settings') {
+    await saveToServer('saveSettings', payload);
+  }
+}
+
+// Load all from server
+async function loadAll(){
+  try{
+    const [r1,r2,r3]=await Promise.all([
+      fetch(API_URL+'?action=settings'),
+      fetch(API_URL+'?action=halls'),
+      fetch(API_URL)
+    ]);
+    settings=r1.ok?await r1.json():{};
+    halls=r2.ok?await r2.json():[];
+    // If no halls in אולמות sheet, auto-populate from availability
+    if(!halls.length){
+      const avail=r3.ok?await r3.json():[];
+      const names=[...new Set(avail.map(r=>r.hall))];
+      halls=names.map(n=>({name:n,city:'',kashrut:'',access:'',seats:'',desc:'',img:'',vid:'',links:[]}));
+    }
+    applySettings();
+    renderHalls();
+  }catch(e){
+    console.error('loadAll error:',e);
+  }
+  document.getElementById('loadingOverlay').style.display='none';
+}
+
+function applySettings(){
+  document.getElementById('siteName').value=settings.siteName||'';
+  document.getElementById('heroSubtitle').value=settings.heroSubtitle||'';
+  document.getElementById('headerColor').value=settings.headerColor||'#1a1a2e';
+  if(settings.logo){
+    document.getElementById('logoPreview').src=settings.logo;
+    document.getElementById('logoPreview').style.display='block';
+    document.getElementById('logoUrl').value=settings.logo;
+    logoData=settings.logo;
+  }
+  document.getElementById('contactEmail').value=settings.contactEmail||'';
+  ['Top','Bottom','Side'].forEach(pos=>{
+    const val=settings['showAd'+pos]; const show=val!==false&&val!=='false'&&val!=='FALSE';
+    adState[pos]=show;
+    updateToggle(pos);
+    // Load carousel items
+    try{ adItems[pos]=JSON.parse(settings['adItems'+pos]||'[]'); }catch(e){ adItems[pos]=[]; }
+    // Backwards compat: if old single ad exists and no items yet
+    if(!adItems[pos].length && settings['adText'+pos]){
+      adItems[pos]=[{text:settings['adText'+pos],link:settings['adLink'+pos]||'',duration:5}];
+    }
+    renderAdList(pos);
+  });
+}
+
+function updateToggle(pos){
+  const on=adState[pos];
+  document.getElementById('tg'+pos).style.background=on?'#2ecc71':'#ccc';
+  document.getElementById('kn'+pos).style.right=on?'2px':'18px';
+  document.getElementById('st'+pos).textContent=on?'פעיל':'מוסתר';
+  document.getElementById('st'+pos).style.color=on?'#2ecc71':'#999';
+}
+function tgAd(pos){adState[pos]=!adState[pos];updateToggle(pos);}
+
+// Ad carousel
+function renderAdList(pos){
+  const container=document.getElementById('adList'+pos);
+  const items=adItems[pos];
+  if(!items.length){container.innerHTML='<p style="font-size:0.78rem;color:#aaa;margin-bottom:8px">אין פרסומות עדיין. לחץ "+ הוסף" להתחיל.</p>';return;}
+  container.innerHTML=items.map((ad,i)=>`
+    <div class="ad-item">
+      <div class="ad-item-header">
+        <span class="ad-item-num">פרסומת ${i+1}</span>
+        <button class="ad-item-del" onclick="delAd('${pos}',${i})">🗑 מחק</button>
+      </div>
+      <label>טקסט</label>
+      <input type="text" value="${escHtml(ad.text||'')}" placeholder="טקסט הפרסומת" oninput="upAd('${pos}',${i},'text',this.value)"/>
+      <label>קישור</label>
+      <input type="url" value="${escHtml(ad.link||'')}" placeholder="https://..." oninput="upAd('${pos}',${i},'link',this.value)"/>
+      <div class="ad-duration-row">
+        <label>⏱ זמן הצגה:</label>
+        <input type="number" min="1" max="300" value="${ad.duration||5}" oninput="upAd('${pos}',${i},'duration',+this.value)"/>
+        <span>שניות</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function addAd(pos){
+  adItems[pos].push({text:'',link:'',duration:5});
+  renderAdList(pos);
+}
+
+function delAd(pos,i){
+  if(!confirm('למחוק פרסומת זו?'))return;
+  adItems[pos].splice(i,1);
+  renderAdList(pos);
+}
+
+function upAd(pos,i,field,val){
+  adItems[pos][i][field]=val;
+}
+
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+
+async function saveAds(){
+  const payload={};
+  ['Top','Bottom','Side'].forEach(pos=>{
+    payload['showAd'+pos]=adState[pos]?'true':'false';
+    payload['adItems'+pos]=JSON.stringify(adItems[pos]);
+    // Keep legacy fields for backwards compat
+    payload['adText'+pos]=(adItems[pos][0]&&adItems[pos][0].text)||'';
+    payload['adLink'+pos]=(adItems[pos][0]&&adItems[pos][0].link)||'';
+  });
+  await postData('settings',payload);
+  showOk('adOk');
+}
+function renderHalls(){
+  const list=document.getElementById('hallsList');
+  list.innerHTML=halls.map((h,i)=>`
+    <div style="border:1px solid #eee;border-radius:8px;padding:12px;margin-bottom:10px;background:#fafafa">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <strong style="font-size:0.9rem;color:#1a1a2e">${h.name||'אולם '+(i+1)}</strong>
+        <button onclick="rmHall(${i})" style="background:#fde8e8;color:#a32020;border:none;border-radius:5px;padding:3px 10px;cursor:pointer;font-size:0.78rem">מחק</button>
+      </div>
+      <label style="margin-top:0">שם האולם</label>
+      <input type="text" value="${escHtml(h.name||'')}" onchange="upHall(${i},'name',this.value)"/>
+      <label>עיר</label>
+      <input type="text" value="${escHtml(h.city||'')}" onchange="upHall(${i},'city',this.value)"/>
+      <label>רחוב</label>
+      <input type="text" value="${escHtml(h.street||'')}" onchange="upHall(${i},'street',this.value)"/>
+      <label>טלפון</label>
+      <input type="text" value="${escHtml(h.phone||'')}" placeholder="050-0000000" onchange="upHall(${i},'phone',this.value)"/>
+      <label>כשרות</label>
+      <input type="text" value="${escHtml(h.kashrut||'')}" onchange="upHall(${i},'kashrut',this.value)"/>
+      <label>נגישות</label>
+      <select onchange="upHall(${i},'access',this.value)">
+        <option value="">-- בחר --</option>
+        <option value="כן" ${h.access==='כן'?'selected':''}>כן</option>
+        <option value="לא" ${h.access==='לא'?'selected':''}>לא</option>
+      </select>
+      <label>מספר מקומות</label>
+      <input type="number" value="${escHtml(String(h.seats||''))}" onchange="upHall(${i},'seats',this.value)"/>
+      <label>תיאור (לעמוד מידע)</label>
+      <textarea onchange="upHall(${i},'desc',this.value)">${escHtml(h.desc||'')}</textarea>
+      <label>תמונה (קישור Cloudinary)</label>
+      <input type="url" value="${escHtml(h.img||'')}" placeholder="https://res.cloudinary.com/..." onchange="upHall(${i},'img',this.value)"/>
+      ${h.img?`<img src="${escHtml(h.img)}" style="max-width:100%;max-height:80px;border-radius:6px;margin:4px 0 6px"/>`:''} 
+
+      <!-- Custom fields -->
+      <div style="margin-top:12px;border-top:1px dashed #ddd;padding-top:10px">
+        <div style="font-size:0.75rem;font-weight:700;color:#555;margin-bottom:8px">📋 שדות נוספים (מוצגים בעמוד האולמות)</div>
+        <div id="customFields_${i}">${renderCustomFields(i,h.customFields||[])}</div>
+        <button class="btn-add-field" onclick="addCustomField(${i})">+ הוסף שדה</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderCustomFields(hallIdx, fields){
+  if(!fields.length) return '<p style="font-size:0.75rem;color:#bbb;margin-bottom:6px">אין שדות נוספים עדיין</p>';
+  return fields.map((f,fi)=>`
+    <div class="custom-field-row">
+      <div class="cf-top-row">
+        <input class="cf-input cf-label" type="text" value="${escHtml(f.label||'')}" placeholder="שם השדה" oninput="upCustomField(${hallIdx},${fi},'label',this.value)"/>
+        <select class="cf-select" onchange="upCustomField(${hallIdx},${fi},'type',this.value);renderHalls()">
+          <option value="text" ${(!f.type||f.type==='text')?'selected':''}>כיתוב</option>
+          <option value="link" ${f.type==='link'?'selected':''}>קישור</option>
+        </select>
+        <button class="cf-del" onclick="delCustomField(${hallIdx},${fi})">✕</button>
+      </div>
+      <input class="cf-input cf-value" type="${f.type==='link'?'url':'text'}" value="${escHtml(f.value||'')}" placeholder="${f.type==='link'?'https://...':'תוכן השדה'}" oninput="upCustomField(${hallIdx},${fi},'value',this.value)"/>
+    </div>
+  `).join('');
+}
+
+function addCustomField(i){
+  if(!halls[i].customFields) halls[i].customFields=[];
+  halls[i].customFields.push({label:'',type:'text',value:''});
+  document.getElementById('customFields_'+i).innerHTML=renderCustomFields(i,halls[i].customFields);
+  // re-render add button stays, just refresh inner div
+}
+
+function delCustomField(hallIdx,fi){
+  halls[hallIdx].customFields.splice(fi,1);
+  document.getElementById('customFields_'+hallIdx).innerHTML=renderCustomFields(hallIdx,halls[hallIdx].customFields);
+}
+
+function upCustomField(hallIdx,fi,key,val){
+  if(!halls[hallIdx].customFields) halls[hallIdx].customFields=[];
+  halls[hallIdx].customFields[fi][key]=val;
+}
+
+function addHall(){halls.push({name:'',city:'',street:'',phone:'',kashrut:'',access:'',seats:'',desc:'',img:'',vid:'',links:[],customFields:[]});renderHalls();}
+function rmHall(i){if(!confirm('למחוק?'))return;halls.splice(i,1);renderHalls();}
+function upHall(i,f,v){halls[i][f]=v;}
+
+
+async function saveHalls(){
+  const btn=document.getElementById('saveHallsBtn');
+  btn.disabled=true;btn.textContent='שומר...';
+  await postData('halls',halls);
+  btn.disabled=false;btn.textContent='💾 שמור הכל לשרת';
+  showOk('hallsOk');
+}
+
+async function saveLogo(){
+  const logoUrl = document.getElementById('logoUrl').value || logoData;
+  await saveToServer('saveSettings', {
+    siteName: document.getElementById('siteName').value,
+    heroSubtitle: document.getElementById('heroSubtitle').value,
+    logo: logoUrl,
+    headerColor: document.getElementById('headerColor').value
+  });
+  showOk('logoOk');
+}
+
+function previewUrl(inputId, previewId) {
+  const url = document.getElementById(inputId).value;
+  if (!url) return;
+  const img = document.getElementById(previewId);
+  img.src = url;
+  img.style.display = 'block';
+  logoData = url;
+}
+
+async function saveAds(){
+  const payload={};
+  ['Top','Bottom','Side'].forEach(pos=>{
+    payload['adText'+pos]=document.getElementById('adText'+pos).value;
+    payload['adLink'+pos]=document.getElementById('adLink'+pos).value;
+    payload['showAd'+pos]=adState[pos]?'true':'false';
+  });
+  await postData('settings',payload);
+  showOk('adOk');
+}
+
+async function saveContact(){
+  await postData('settings',{contactEmail:document.getElementById('contactEmail').value});
+  showOk('contactOk');
+}
+
+async function changePass(){
+  const o=document.getElementById('p0').value,n=document.getElementById('p1').value,c=document.getElementById('p2').value;
+  const cur=settings.adminPass||'CHANGE_ME';
+  const err=document.getElementById('passErr');err.style.display='none';
+  if(o!==cur){err.textContent='סיסמה נוכחית שגויה';err.style.display='block';return;}
+  if(n.length<4){err.textContent='סיסמה חייבת 4 תווים לפחות';err.style.display='block';return;}
+  if(n!==c){err.textContent='הסיסמאות אינן תואמות';err.style.display='block';return;}
+  await postData('settings',{adminPass:n});
+  settings.adminPass=n;
+  ['p0','p1','p2'].forEach(id=>document.getElementById(id).value='');
+  showOk('passOk');
+}
+
+loadAll();
+</script>
+</body>
+</html>
