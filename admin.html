@@ -5,7 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ניהול אתר</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap');display=swap');
+/* Password Gate */
+#passwordGate{position:fixed;top:0;right:0;bottom:0;left:0;background:#1a1a2e;z-index:99999;display:flex;align-items:center;justify-content:center;}
+#passwordBox{background:white;border-radius:16px;padding:40px 32px;width:320px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,0.4);}
+#passwordBox h2{font-size:1.3rem;color:#1a1a2e;margin-bottom:8px;}
+#passwordBox p{font-size:0.85rem;color:#888;margin-bottom:20px;}
+#passwordBox input{width:100%;padding:10px 14px;border:2px solid #ddd;border-radius:8px;font-size:1rem;font-family:Rubik;text-align:center;margin-bottom:10px;outline:none;}
+#passwordBox input:focus{border-color:#1a1a2e;}
+#passwordBox button{width:100%;padding:11px;background:#1a1a2e;color:white;border:none;border-radius:8px;font-size:0.95rem;font-family:Rubik;font-weight:700;cursor:pointer;margin-bottom:10px;}
+#passwordBox button:hover{background:#2a2a4e;}
+#passwordBox .err{color:#e74c3c;font-size:0.82rem;display:none;margin-bottom:8px;}
+#passwordBox .back-btn{font-size:0.78rem;color:#aaa;cursor:pointer;text-decoration:underline;}
+#adminContent{display:none;}
+@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Rubik',sans-serif;background:#f0f0f0;min-height:100vh;}
 header{background:#1a1a2e;color:white;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;}
@@ -73,6 +85,21 @@ textarea{resize:vertical;min-height:70px;}
 </style>
 </head>
 <body>
+
+<!-- Password Gate -->
+<div id="passwordGate">
+  <div id="passwordBox">
+    <h2>🔐 כניסה לניהול</h2>
+    <p>הכנס סיסמה להמשך</p>
+    <div class="err" id="gateErr">❌ סיסמה שגויה, נסה שוב</div>
+    <input type="password" id="gatePass" placeholder="סיסמה..." onkeydown="if(event.key==='Enter')checkGate()"/>
+    <button onclick="checkGate()">כניסה</button>
+    <div class="back-btn" onclick="history.back()">← חזרה לאתר</div>
+  </div>
+</div>
+
+<!-- Admin Content (hidden until password entered) -->
+<div id="adminContent">
 <div class="loading-overlay" id="loadingOverlay">טוען נתונים מהשרת...</div>
 <header>
   <h1>🔐 לוח ניהול</h1>
@@ -216,6 +243,8 @@ textarea{resize:vertical;min-height:70px;}
 
   </div>
 </div>
+
+</div><!-- end adminContent -->
 
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbziYMBlMR3C_QbmPmDESOkYBWPSGwJ4f2sja-Os4BKj7Xm5KLgdNkhEmY4w3_5Lq_RtnA/exec';
@@ -673,7 +702,33 @@ async function changePass(){
   showOk('passOk');
 }
 
-loadAll();
+// ===== PASSWORD GATE =====
+const API_URL_GATE='https://script.google.com/macros/s/AKfycbziYMBlMR3C_QbmPmDESOkYBWPSGwJ4f2sja-Os4BKj7Xm5KLgdNkhEmY4w3_5Lq_RtnA/exec';
+
+async function checkGate(){
+  const pass=document.getElementById('gatePass').value;
+  if(!pass) return;
+  try{
+    const res=await fetch(API_URL_GATE+'?action=settings');
+    const s=await res.json();
+    const correct=s.adminPass||'CHANGE_ME';
+    if(pass===correct){
+      document.getElementById('passwordGate').style.display='none';
+      document.getElementById('adminContent').style.display='block';
+      loadAll();
+    } else {
+      document.getElementById('gateErr').style.display='block';
+      document.getElementById('gatePass').value='';
+      document.getElementById('gatePass').focus();
+    }
+  } catch(e){
+    // Fallback if can't fetch settings
+    document.getElementById('gateErr').textContent='שגיאה בטעינה, נסה שוב';
+    document.getElementById('gateErr').style.display='block';
+  }
+}
+
+document.getElementById('gatePass').focus();
 </script>
 </body>
 </html>

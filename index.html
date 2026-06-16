@@ -16,8 +16,8 @@ body.has-bottom-ad{padding-bottom:2.5cm;}
 #heroBanner::after{content:'';position:absolute;top:0;right:0;bottom:0;left:0;background:radial-gradient(ellipse 60% 50% at center,rgba(26,26,46,0.55) 0%,rgba(26,26,46,0.2) 60%,transparent 100%);z-index:1;pointer-events:none;}
 #heroText,#heroSubtext{position:relative;z-index:5;}
 #heroImg{display:none;}
-#heroText{font-family:'Playfair Display',serif;font-size:3.2rem;font-weight:800;margin-bottom:14px;letter-spacing:-0.5px;text-shadow:0 4px 20px rgba(0,0,0,0.8),0 2px 6px rgba(0,0,0,0.9);}
-#heroSubtext{font-family:'Playfair Display',serif;font-size:1.25rem;opacity:0.98;font-weight:400;letter-spacing:0.5px;text-shadow:0 2px 10px rgba(0,0,0,0.8),0 1px 4px rgba(0,0,0,0.9);font-style:italic;}
+#heroText{font-family:'Playfair Display',serif;font-size:3.4rem;font-weight:800;margin-bottom:14px;letter-spacing:-0.5px;color:#c49a3c;text-shadow:0 2px 10px rgba(0,0,0,0.7),0 1px 3px rgba(0,0,0,0.95);}
+#heroSubtext{font-family:'Playfair Display',serif;font-size:1.3rem;opacity:1;font-weight:400;letter-spacing:0.5px;color:#f5e6cc;text-shadow:0 2px 8px rgba(0,0,0,0.7),0 1px 3px rgba(0,0,0,0.95);font-style:italic;}
 
 header{background:#1a1a2e;color:white;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
 .header-right{display:flex;align-items:center;gap:8px;}
@@ -107,13 +107,13 @@ body.has-bottom-ad .table-area{height:calc(100vh - 56px - 2.5cm);}
 
 .table-scroll{overflow:auto;flex:1;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,0.07);}
 body.has-bottom-ad .table-scroll{padding-bottom:2.5cm;}
-table{border-collapse:collapse;background:white;font-size:0.68rem;width:max-content;min-width:100%;}
+table{border-collapse:collapse;background:white;font-size:0.68rem;width:max-content;min-width:100%;border:1px solid #ede8e0;}
 thead{position:sticky;top:0;z-index:10;}
 thead tr{background:#1a1a2e;color:white;}
-th{padding:8px 5px;text-align:center;font-weight:600;font-size:0.65rem;white-space:nowrap;}
-th.date-col{text-align:right;min-width:100px;position:sticky;right:0;background:#1a1a2e;z-index:11;}
-td{padding:0;text-align:center;border-bottom:1px solid #f0ece4;height:32px;}
-td.date-cell{text-align:right;font-weight:600;color:#333;white-space:nowrap;background:#fafaf7;position:sticky;right:0;border-left:2px solid #e8e4dc;padding:3px 5px;z-index:5;cursor:pointer;}
+th{padding:8px 5px;text-align:center;font-weight:600;font-size:0.65rem;white-space:nowrap;border-left:1px solid rgba(255,255,255,0.15);}
+th.date-col{text-align:right;min-width:100px;position:sticky;right:0;background:#1a1a2e;z-index:11;border-left:none;}
+td{padding:0;text-align:center;border-bottom:1px solid #ede8e0;border-left:1px solid #ede8e0;height:32px;}
+td.date-cell{text-align:right;font-weight:600;color:#333;white-space:nowrap;background:#fafaf7;position:sticky;right:0;border-left:2px solid #d5cfc4;border-right:none;padding:3px 5px;z-index:5;cursor:pointer;}
 td.date-cell:hover{background:#e8e4dc;}
 td.date-cell.selected{background:#1a1a2e;color:#e8b86d;}
 th.date-col{text-align:right;min-width:100px;position:sticky;right:0;background:#1a1a2e;z-index:11;}
@@ -340,7 +340,7 @@ th.hall-name-th:hover{background:#2a2a4e;}
 <div id="adBottom"><div id="adBottomContent"><span id="adContent">פרסומת</span></div></div>
 
 <!-- Date Tooltip -->
-<div id="dateTooltip">👉 לחץ כאן להעברת האולמות הפנויים לקדמת הטבלה</div>
+<div id="dateTooltip">👉 לחץ על התאריך להעברת האולמות הפנויים בתאריך זה לקדמת הטבלה</div>
 
 <!-- Admin Modal Removed -->
 
@@ -621,7 +621,7 @@ function dateHoverStart(e){
     const tip=document.getElementById('dateTooltip');
     tip.style.display='block';
     positionTooltip(lastMouseEvent);
-  },1500);
+  },500);
 }
 function dateHoverMove(e){
   lastMouseEvent=e;
@@ -647,7 +647,7 @@ let hallHoverTimer=null, hallModalImages=[], hallModalImgIdx=0;
 
 function hallHoverStart(name){
   clearTimeout(hallHoverTimer);
-  hallHoverTimer=setTimeout(()=>openHallModal(name),2000);
+  hallHoverTimer=setTimeout(()=>openHallModal(name),1500);
 }
 function hallHoverEnd(){
   clearTimeout(hallHoverTimer);
@@ -805,7 +805,11 @@ function populateFilters(){
 document.addEventListener('keydown',function(e){
   if(e.ctrlKey&&e.shiftKey&&e.key==='A'){
     e.preventDefault();
-    window.location.href='admin.html';
+    const pass=prompt('🔐 הכנס סיסמה לכניסה לניהול:');
+    if(!pass) return;
+    const correct=(window._settings&&window._settings.adminPass)||'CHANGE_ME';
+    if(pass===correct) window.location.href='admin.html';
+    else alert('❌ סיסמה שגויה');
   }
 });
 
