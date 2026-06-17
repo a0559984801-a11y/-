@@ -3,6 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-H8MXTNM0HY"></script>
+<script>
+window.dataLayer=window.dataLayer||[];
+function gtag(){dataLayer.push(arguments);}
+gtag('js',new Date());
+gtag('config','G-H8MXTNM0HY');
+</script>
+
 <title>זמינות אולמות חתונה</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap');
@@ -385,6 +394,14 @@ const API_URL='https://script.google.com/macros/s/AKfycbziYMBlMR3C_QbmPmDESOkYBW
 function safeParse(str,fallback){
   if(!str) return fallback;
   try{ return JSON.parse(str); }catch(e){ return fallback; }
+}
+// Log visit to Google Sheets (fire and forget, never blocks the page)
+function logVisit(page){
+  try{
+    const device=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?'mobile':'desktop';
+    const img=new Image();
+    img.src=API_URL+'?action=logVisit&page='+encodeURIComponent(page)+'&device='+device+'&t='+Date.now();
+  }catch(e){}
 }
 const DAYS_HE=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
 const DAYS_S=['א','ב','ג','ד','ה','ו','ש'];
@@ -957,6 +974,7 @@ function toggleSidebar(){
 }
 
 fetchData();
+logVisit('index');
 // Refresh data from server every 30 seconds
 setInterval(fetchData,30000);
 </script>

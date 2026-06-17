@@ -3,6 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-H8MXTNM0HY"></script>
+<script>
+window.dataLayer=window.dataLayer||[];
+function gtag(){dataLayer.push(arguments);}
+gtag('js',new Date());
+gtag('config','G-H8MXTNM0HY');
+</script>
+
 <title>מידע על אולמות</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap');
@@ -160,6 +169,14 @@ header h1{font-size:1.1rem;font-weight:700;}
 
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbziYMBlMR3C_QbmPmDESOkYBWPSGwJ4f2sja-Os4BKj7Xm5KLgdNkhEmY4w3_5Lq_RtnA/exec';
+// Log visit to Google Sheets (fire and forget, never blocks the page)
+function logVisit(page){
+  try{
+    const device=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?'mobile':'desktop';
+    const img=new Image();
+    img.src=API_URL+'?action=logVisit&page='+encodeURIComponent(page)+'&device='+device+'&t='+Date.now();
+  }catch(e){}
+}
 let halls=[],currentHall=null,currentImageIndex=0,currentView='grid-large';
 
 async function loadHalls(){
@@ -368,6 +385,7 @@ function closeFullscreen(e){
 }
 
 loadHalls();
+logVisit('halls');
 </script>
 </body>
 </html>
