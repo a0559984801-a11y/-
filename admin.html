@@ -548,18 +548,20 @@ function renderAdList(pos){
       <div onclick="toggleAd('${pos}',${i})" style="display:flex;justify-content:space-between;align-items:center;padding:12px;cursor:pointer;user-select:none">
         <div style="display:flex;align-items:center;gap:8px">
           <span id="adArrow_${pos}_${i}" style="font-size:0.85rem;transition:transform 0.2s;display:inline-block">▶</span>
-          <strong style="font-size:0.9rem;color:#1a1a2e">${ad.text||'פרסומת '+(i+1)}</strong>
+          <strong style="font-size:0.9rem;color:#1a1a2e">${ad.name||ad.text||'פרסומת '+(i+1)}</strong>
         </div>
         <button onclick="event.stopPropagation();delAd('${pos}',${i})" style="background:#fde8e8;color:#a32020;border:none;border-radius:5px;padding:3px 10px;cursor:pointer;font-size:0.78rem">מחק</button>
       </div>
       <div id="adDetails_${pos}_${i}" style="display:none;padding:0 12px 12px">
-        <label style="margin-top:8px">טקסט</label>
-        <input type="text" value="${escHtml(ad.text||'')}" placeholder="טקסט הפרסומת" oninput="upAd('${pos}',${i},'text',this.value);updateAdTitle('${pos}',${i},this.value)"/>
+        <label style="margin-top:8px">שם פרסומת (לזיהוי פנימי)</label>
+        <input type="text" value="${escHtml(ad.name||'')}" placeholder="לדוגמה: באנר קיץ" oninput="upAd('${pos}',${i},'name',this.value);updateAdTitle('${pos}',${i})"/>
+        <label>טקסט</label>
+        <input type="text" value="${escHtml(ad.text||'')}" placeholder="טקסט הפרסומת" oninput="upAd('${pos}',${i},'text',this.value)"/>
         <label>קישור</label>
         <input type="url" value="${escHtml(ad.link||'')}" placeholder="https://..." oninput="upAd('${pos}',${i},'link',this.value)"/>
         <label>תמונה (קישור Cloudinary)</label>
         <input type="url" value="${escHtml(ad.img||'')}" placeholder="https://res.cloudinary.com/..." oninput="upAd('${pos}',${i},'img',this.value)"/>
-        ${ad.img?`<img src="${escHtml(ad.img)}" style="max-width:100%;max-height:80px;border-radius:6px;margin:4px 0 6px"/>`:''}
+        ${ad.img?`<img src="${escHtml(ad.img)}" style="max-width:100%;max-height:80px;border-radius:6px;margin:4px 0 6px"/>`:''}  
         <label>סרטון (קישור Cloudinary)</label>
         <input type="url" value="${escHtml(ad.vid||'')}" placeholder="https://res.cloudinary.com/..." oninput="upAd('${pos}',${i},'vid',this.value)"/>
         <div style="margin-top:12px;border-top:1px dashed #ddd;padding-top:10px">
@@ -585,9 +587,10 @@ function toggleAd(pos,i){
   arrow.style.transform=isOpen?'':'rotate(90deg)';
 }
 
-function updateAdTitle(pos,i,val){
+function updateAdTitle(pos,i){
+  const ad=adItems[pos][i];
   const el=document.querySelector('#adCard_'+pos+'_'+i+' strong');
-  if(el) el.textContent=val||'פרסומת '+(i+1);
+  if(el) el.textContent=ad.name||ad.text||'פרסומת '+(i+1);
 }
 
 function filterAdList(pos){
@@ -595,7 +598,7 @@ function filterAdList(pos){
   adItems[pos].forEach((ad,i)=>{
     const card=document.getElementById('adCard_'+pos+'_'+i);
     if(!card) return;
-    card.style.display=(!q||(ad.text||'').toLowerCase().includes(q))?'':'none';
+    card.style.display=(!q||((ad.name||ad.text||'').toLowerCase().includes(q)))?'':'none';
   });
 }
 
@@ -616,12 +619,12 @@ function renderAdGallery(pos,adIdx,items){
       <label style="font-size:0.7rem;color:#666;display:block;margin-bottom:2px">💻 מחשב:</label>
       <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
         <input type="url" value="${escHtml(item.url||'')}" placeholder="https://res.cloudinary.com/..." style="flex:1;padding:6px 8px;border:1px solid #ddd;border-radius:5px;font-family:Assistant;font-size:0.82rem" oninput="upAdMedia('${pos}',${adIdx},${ii},'url',this.value)"/>
-        ${item.url?`<img src="${escHtml(item.url)}" style="max-width:44px;max-height:44px;border-radius:5px;object-fit:cover;flex-shrink:0"/>`:''}
+        ${item.url?`<img src="${escHtml(item.url)}" style="max-width:44px;max-height:44px;border-radius:5px;object-fit:cover;flex-shrink:0"/>`:''}  
       </div>
       <label style="font-size:0.7rem;color:#666;display:block;margin-bottom:2px">📱 טלפון:</label>
       <div style="display:flex;gap:6px;align-items:center">
         <input type="url" value="${escHtml(item.urlMobile||'')}" placeholder="https://res.cloudinary.com/... (אופציונלי)" style="flex:1;padding:6px 8px;border:1px solid #ddd;border-radius:5px;font-family:Assistant;font-size:0.82rem" oninput="upAdMedia('${pos}',${adIdx},${ii},'urlMobile',this.value)"/>
-        ${item.urlMobile?`<img src="${escHtml(item.urlMobile)}" style="max-width:44px;max-height:44px;border-radius:5px;object-fit:cover;flex-shrink:0"/>`:''}
+        ${item.urlMobile?`<img src="${escHtml(item.urlMobile)}" style="max-width:44px;max-height:44px;border-radius:5px;object-fit:cover;flex-shrink:0"/>`:''}  
       </div>
     </div>
   `).join('');
@@ -644,7 +647,7 @@ function delAdMedia(pos,adIdx,mediaIdx){
 }
 
 function addAd(pos){
-  adItems[pos].push({text:'',link:'',img:'',vid:'',duration:5,gallery:[]});
+  adItems[pos].push({name:'',text:'',link:'',img:'',vid:'',duration:5,gallery:[]});
   renderAdList(pos);
   toggleAd(pos,adItems[pos].length-1);
 }
@@ -707,7 +710,7 @@ function renderHalls(){
         <textarea onchange="upHall(${i},'desc',this.value)">${escHtml(h.desc||'')}</textarea>
         <label>תמונה ראשונה (קישור Cloudinary)</label>
         <input type="url" value="${escHtml(h.img||'')}" placeholder="https://res.cloudinary.com/..." onchange="upHall(${i},'img',this.value)"/>
-        ${h.img?`<img src="${escHtml(h.img)}" style="max-width:100%;max-height:80px;border-radius:6px;margin:4px 0 6px"/>`:''}
+        ${h.img?`<img src="${escHtml(h.img)}" style="max-width:100%;max-height:80px;border-radius:6px;margin:4px 0 6px"/>`:''}  
 
         <!-- Multiple Images Gallery -->
         <div style="margin-top:12px;border-top:1px dashed #ddd;padding-top:10px">
