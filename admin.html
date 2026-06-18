@@ -877,13 +877,29 @@ async function saveOrder(){
 async function saveAll(){
   const btn=document.getElementById('saveAllBtn');
   btn.textContent='שומר...';btn.disabled=true;
-  await Promise.all([
-    saveHalls(),
-    saveLogo(),
-    saveAds(),
-    saveOrder(),
-    saveContact()
-  ]);
+  try{
+    // שמור אולמות (גיליון נפרד)
+    await saveHalls();
+
+    // מזג כל ההגדרות לבקשה אחת כדי למנוע קריסות מקבילות
+    const logoUrl=document.getElementById('logoUrl').value||logoData;
+    const adPayload={};
+    ['Top','Bottom','Side'].forEach(pos=>{
+      adPayload['showAd'+pos]=adState[pos]?'true':'false';
+      adPayload['adItems'+pos]=JSON.stringify(adItems[pos]);
+      adPayload['adText'+pos]=(adItems[pos][0]&&adItems[pos][0].text)||'';
+      adPayload['adLink'+pos]=(adItems[pos][0]&&adItems[pos][0].link)||'';
+    });
+    await saveToServer('saveSettings', {
+      siteName: document.getElementById('siteName').value,
+      heroSubtitle: document.getElementById('heroSubtitle').value,
+      logo: logoUrl,
+      headerColor: document.getElementById('headerColor').value,
+      contactEmail: document.getElementById('contactEmail').value,
+      hallOrder: JSON.stringify(hallOrder),
+      ...adPayload
+    });
+  }catch(e){ console.error('saveAll error',e); }
   btn.textContent='💾 שמור הכל';btn.disabled=false;
   const ok=document.getElementById('saveAllOk');
   ok.style.display='block';
