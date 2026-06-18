@@ -209,7 +209,8 @@ function applyHallOrder(list, settings){
 
 async function loadHalls(){
   try{
-    const [r1,r2]=await Promise.all([fetch(API_URL+'?action=halls'),fetch(API_URL+'?action=settings')]);
+    const _t=Date.now();
+    const [r1,r2]=await Promise.all([fetch(API_URL+'?action=halls&t='+_t),fetch(API_URL+'?action=settings&t='+_t)]);
     const rawHalls=(await r1.json()).filter(h=>h.name);
     const settings=r2.ok?await r2.json():{};
     halls=applyHallOrder(rawHalls, settings);
