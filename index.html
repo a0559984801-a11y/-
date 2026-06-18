@@ -948,14 +948,17 @@ function applyHebrewMonthFilter(){
   applyFilters();
 }
 
-async function fetchData(){
-  sessionStorage.removeItem('hd');sessionStorage.removeItem('ht');
+async function fetchData(isAutoRefresh){
+  if(!isAutoRefresh){
+    sessionStorage.removeItem('hd');sessionStorage.removeItem('ht');
+  }
   try{
     let availData, settingsData={}, hallsData=[];
+    const _t=Date.now();
     const [r1,r2,r3]=await Promise.all([
-      fetch(API_URL),
-      fetch(API_URL+'?action=settings'),
-      fetch(API_URL+'?action=halls')
+      fetch(API_URL+'?t='+_t),
+      fetch(API_URL+'?action=settings&t='+_t),
+      fetch(API_URL+'?action=halls&t='+_t)
     ]);
     availData=r1.ok?await r1.json():[];
     settingsData=r2.ok?await r2.json():{};
@@ -967,13 +970,15 @@ async function fetchData(){
     const map={};
     (hallsData||[]).forEach(d=>{map[d.name]={city:d.city||'',kashrut:d.kashrut||'',access:d.access||'',seats:parseInt(d.seats)||0};});
     allData.forEach(r=>{if(map[r.hall]){r.city=map[r.hall].city;r.kashrut=map[r.hall].kashrut;r.access=map[r.hall].access;r.seats=map[r.hall].seats;}});
-    populateFilters();
-    const t=new Date(),e=new Date();e.setDate(t.getDate()+365);
-    document.getElementById('filterFrom').value=t.toISOString().split('T')[0];
-    document.getElementById('filterTo').value=e.toISOString().split('T')[0];
+    if(!isAutoRefresh){
+      populateFilters();
+      const t=new Date(),e=new Date();e.setDate(t.getDate()+365);
+      document.getElementById('filterFrom').value=t.toISOString().split('T')[0];
+      document.getElementById('filterTo').value=e.toISOString().split('T')[0];
+      loadSettings();
+    }
     document.getElementById('loading').style.display='none';
     buildTable();
-    loadSettings();
   }catch(err){
     document.getElementById('loading').style.display='none';
     if(!allData.length){
@@ -992,6 +997,8 @@ function toggleSidebar(){
 
 fetchData();
 logVisit('index');
+// Auto-refresh data every 20 seconds (silent, doesn't disrupt user's filters/scroll)
+setInterval(()=>fetchData(true),20000);
 const _pageStart=Date.now();
 window.addEventListener('pagehide',function(){
   const sec=Math.round((Date.now()-_pageStart)/1000);
