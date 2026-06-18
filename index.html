@@ -534,9 +534,15 @@ function parseAPI(rows){
     let raw=r[dateKey]+'', pd=null;
     if(raw.includes('/'))pd=new Date(+raw.split('/')[2],+raw.split('/')[1]-1,+raw.split('/')[0]);
     else if(raw.includes('-')){
-      // Handle ISO format with timezone (e.g., "2026-06-18T21:00:00.000Z")
-      const dp=raw.split('T')[0].split('-');
-      pd=new Date(+dp[0],+dp[1]-1,+dp[2]);
+      if(raw.includes('T')||raw.includes(':')){
+        // ISO timestamp from Google (e.g., "2026-06-13T21:00:00.000Z")
+        // Let Date convert UTC to local time so the date matches the sheet.
+        pd=new Date(raw);
+      } else {
+        // Plain yyyy-mm-dd with no time: build a local date to avoid UTC shift.
+        const dp=raw.split('-');
+        pd=new Date(+dp[0],+dp[1]-1,+dp[2]);
+      }
     }
     else return;
     if(!pd||isNaN(pd)) return;
