@@ -21,8 +21,8 @@ body.has-bottom-ad{padding-bottom:2.5cm;}
 
 /* Hero Banner */
 #heroBanner{width:100%;height:55vh;min-height:320px;background:linear-gradient(135deg,#1a1a2e 0%,#3a3a5e 50%,#1a1a2e 100%);background-size:cover;background-position:center;color:white;padding:40px 20px;text-align:center;flex-shrink:0;display:flex;align-items:center;justify-content:center;flex-direction:column;position:relative;overflow:hidden;}
-#heroBanner::before{content:'';position:absolute;top:0;right:0;bottom:0;left:0;background:linear-gradient(90deg,rgba(26,26,46,0.65) 0%,rgba(26,26,46,0.15) 35%,rgba(26,26,46,0.15) 65%,rgba(26,26,46,0.65) 100%);z-index:1;pointer-events:none;}
-#heroBanner::after{content:'';position:absolute;top:0;right:0;bottom:0;left:0;background:radial-gradient(ellipse 60% 50% at center,rgba(26,26,46,0.55) 0%,rgba(26,26,46,0.2) 60%,transparent 100%);z-index:1;pointer-events:none;}
+#heroBanner::before{content:'';position:absolute;top:0;right:0;bottom:0;left:0;background:linear-gradient(90deg,rgba(26,26,46,0.35) 0%,rgba(26,26,46,0.05) 35%,rgba(26,26,46,0.05) 65%,rgba(26,26,46,0.35) 100%);z-index:1;pointer-events:none;}
+#heroBanner::after{content:'';position:absolute;top:0;right:0;bottom:0;left:0;background:radial-gradient(ellipse 60% 50% at center,rgba(26,26,46,0.25) 0%,rgba(26,26,46,0.05) 60%,transparent 100%);z-index:1;pointer-events:none;}
 #heroText,#heroSubtext{position:static;z-index:auto;}
 #heroImg{display:none;}
 #heroText{font-family:'Playfair Display',serif;font-size:3.4rem;font-weight:800;margin-bottom:14px;letter-spacing:-0.5px;color:#c49a3c;text-shadow:0 2px 10px rgba(0,0,0,0.7),0 1px 3px rgba(0,0,0,0.95);}
@@ -120,12 +120,11 @@ table{border-collapse:collapse;background:white;font-size:0.68rem;width:max-cont
 thead{position:sticky;top:0;z-index:10;}
 thead tr{background:#1a1a2e;color:white;}
 th{padding:8px 5px;text-align:center;font-weight:600;font-size:0.65rem;white-space:nowrap;border-left:1px solid rgba(255,255,255,0.15);}
-th.date-col{text-align:right;min-width:100px;position:sticky;right:0;background:#1a1a2e;z-index:11;border-left:none;}
-td{padding:0;text-align:center;border-bottom:1px solid #ede8e0;border-left:1px solid #ede8e0;height:32px;}
-td.date-cell{text-align:right;font-weight:600;color:#333;white-space:nowrap;background:#fafaf7;position:sticky;right:0;border-left:2px solid #d5cfc4;border-right:none;padding:3px 5px;z-index:5;cursor:pointer;}
+th.date-col{text-align:right;min-width:100px;position:sticky;right:0;background:#1a1a2e;z-index:12;border-left:none;}
+td{padding:0;text-align:center;border-bottom:1px solid #ede8e0;border-left:1px solid #ede8e0;height:32px;background:white;}
+td.date-cell{text-align:right;font-weight:600;color:#333;white-space:nowrap;background:#fafaf7;position:sticky;right:0;border-left:2px solid #d5cfc4;border-right:none;padding:3px 5px;z-index:6;cursor:pointer;}
 td.date-cell:hover{background:#e8e4dc;}
 td.date-cell.selected{background:#1a1a2e;color:#e8b86d;}
-th.date-col{text-align:right;min-width:100px;position:sticky;right:0;background:#1a1a2e;z-index:11;}
 .date-greg{font-size:0.6rem;color:#bbb;display:block;font-weight:400;}
 .cell-status{display:block;width:100%;height:32px;line-height:32px;font-size:0.65rem;font-weight:700;text-align:center;}
 .cell-free{background:#d4f5e4;color:#1a7a45;}
@@ -216,8 +215,11 @@ th.hall-name-th:hover{background:#2a2a4e;}
   .legend{display:none;}
   .table-area{height:calc(100vh - 56px);}
   body.has-bottom-ad .table-area{height:calc(100vh - 56px - 2.5cm);}
-  .hamburger-btn{display:inline-block;}
+  .hamburger-btn{display:inline-flex;}
   .hamburger-label{display:inline-block;}
+  #siteHeader{justify-content:space-evenly;padding:8px 6px;}
+  .header-right,.header-left{gap:0;}
+  .btn-halls,.btn-contact,.hamburger-btn{font-size:0.72rem;padding:6px 8px;}
 }
 </style>
 </head>
@@ -873,7 +875,7 @@ function loadSettings(){
   if(s.headerColor)document.getElementById('siteHeader').style.background=s.headerColor;
   if(s.contactEmail){
     const cb=document.getElementById('contactBtnHeader');
-    if(cb){cb.href='mailto:'+s.contactEmail;cb.style.display='inline-flex';}
+    if(cb){cb.href='https://mail.google.com/mail/?view=cm&to='+encodeURIComponent(s.contactEmail);cb.target='_blank';cb.style.display='inline-flex';}
   }
   // Hero banner background image
   if(s.logo){
@@ -1001,8 +1003,13 @@ function toggleSidebar(){
 
 fetchData();
 logVisit('index');
-// Refresh data from server every 30 seconds
 setInterval(fetchData,30000);
+const _pageStart=Date.now();
+window.addEventListener('pagehide',function(){
+  const sec=Math.round((Date.now()-_pageStart)/1000);
+  if(sec<2) return;
+  try{fetch(API_URL+'?action=logDuration&seconds='+sec+'&t='+Date.now(),{keepalive:true});}catch(e){}
+});
 </script>
 </body>
 </html>

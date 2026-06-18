@@ -33,7 +33,7 @@ header{background:#1a1a2e;color:white;padding:12px 20px;display:flex;align-items
 header h1{font-size:1.1rem;font-weight:700;}
 .btn-back{padding:6px 14px;background:#e8b86d;color:#1a1a2e;border:none;border-radius:6px;cursor:pointer;font-family:'Rubik',sans-serif;font-weight:700;font-size:0.82rem;text-decoration:none;}
 .layout{display:flex;min-height:calc(100vh - 50px);}
-.nav{width:200px;background:#1a1a2e;padding:12px;}
+.nav{width:200px;background:#1a1a2e;padding:12px;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0;}
 .nav-btn{display:block;width:100%;padding:10px 12px;color:#ccc;border:none;background:none;border-radius:6px;font-size:0.85rem;margin-bottom:4px;cursor:pointer;text-align:right;font-family:'Rubik',sans-serif;}
 .nav-btn:hover,.nav-btn.active{background:#2a2a4e;color:white;}
 .content{flex:1;padding:20px;max-width:700px;}
@@ -141,6 +141,9 @@ textarea{resize:vertical;min-height:70px;}
     <button class="nav-btn" onclick="show('order',event)">↕️ סדר טורי הטבלה</button>
     <button class="nav-btn" onclick="show('contact',event)">📬 יצירת קשר</button>
     <button class="nav-btn" onclick="show('security',event)">🔑 סיסמה</button>
+    <div style="border-top:1px solid #2a2a4e;margin:12px 0;"></div>
+    <button class="nav-btn" id="saveAllBtn" onclick="saveAll()" style="background:#e8b86d;color:#1a1a2e;font-weight:700;text-align:center;">💾 שמור הכל</button>
+    <div id="saveAllOk" style="display:none;color:#2ecc71;font-size:0.72rem;text-align:center;margin-top:6px;">✓ הכל נשמר!</div>
   </div>
   <div class="content">
 
@@ -166,6 +169,7 @@ textarea{resize:vertical;min-height:70px;}
           <div class="stat-card"><div class="stat-num" id="statWeek">0</div><div class="stat-lbl">השבוע</div></div>
           <div class="stat-card"><div class="stat-num" id="statMonth">0</div><div class="stat-lbl">החודש</div></div>
           <div class="stat-card"><div class="stat-num" id="statTotal">0</div><div class="stat-lbl">סה״כ</div></div>
+          <div class="stat-card" style="grid-column:1/-1"><div class="stat-num" id="statAvgDuration" style="font-size:1.4rem">—</div><div class="stat-lbl">משך ביקור ממוצע</div></div>
         </div>
         <div class="card">
           <h3 style="font-size:0.95rem;margin-bottom:12px;color:#1a1a2e;">📈 כניסות ב-14 הימים האחרונים</h3>
@@ -182,8 +186,8 @@ textarea{resize:vertical;min-height:70px;}
         <div class="card" style="margin-top:14px;">
           <h3 style="font-size:0.95rem;margin-bottom:12px;color:#1a1a2e;">🏛 צפיות בחלון מידע לפי אולם (14 ימים אחרונים)</h3>
           <div id="hallViewsLoading" style="font-size:0.82rem;color:#aaa;">טוען...</div>
-          <div id="hallViewsTable" style="display:none;overflow-x:auto;">
-            <table id="hallViewsTbl" style="border-collapse:collapse;font-size:0.75rem;width:100%;min-width:400px;">
+          <div id="hallViewsTable" style="display:none;overflow-x:auto;direction:rtl;">
+            <table id="hallViewsTbl" style="border-collapse:collapse;font-size:0.75rem;width:100%;min-width:400px;direction:rtl;">
               <thead id="hallViewsHead"></thead>
               <tbody id="hallViewsBody"></tbody>
             </table>
@@ -331,6 +335,8 @@ async function loadStats(){
     document.getElementById('statWeek').textContent=s.week||0;
     document.getElementById('statMonth').textContent=s.month||0;
     document.getElementById('statTotal').textContent=s.total||0;
+    const avg=s.avgDuration||0;
+    document.getElementById('statAvgDuration').textContent=avg>0?(avg>=60?Math.floor(avg/60)+'ד׳ '+( avg%60?avg%60+'ש׳':''):avg+'ש׳'):'—';
 
     // Last 14 days chart
     const days=[];
@@ -396,7 +402,7 @@ async function loadHallViewStats(){
     let body='';
     hallNames.forEach(name=>{
       const row=data[name]||{};
-      const total=Object.values(row).reduce((a,b)=>a+b,0);
+      const total=days.reduce((a,d)=>a+(row[d]||0),0);
       body+=`<tr><td class="hall-col">${name}</td>`;
       days.forEach(d=>{
         const v=row[d]||0;
@@ -866,6 +872,22 @@ async function saveOrder(){
   await postData('settings',{hallOrder:JSON.stringify(hallOrder)});
   settings.hallOrder=JSON.stringify(hallOrder);
   showOk('orderOk');
+}
+
+async function saveAll(){
+  const btn=document.getElementById('saveAllBtn');
+  btn.textContent='שומר...';btn.disabled=true;
+  await Promise.all([
+    saveHalls(),
+    saveLogo(),
+    saveAds(),
+    saveOrder(),
+    saveContact()
+  ]);
+  btn.textContent='💾 שמור הכל';btn.disabled=false;
+  const ok=document.getElementById('saveAllOk');
+  ok.style.display='block';
+  setTimeout(()=>ok.style.display='none',3000);
 }
 
 async function saveContact(){

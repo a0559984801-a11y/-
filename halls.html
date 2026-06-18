@@ -33,7 +33,7 @@ header h1{font-size:1.1rem;font-weight:700;}
 .halls-grid.grid-large{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));}
 .halls-grid.grid-small{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));}
 .halls-grid.list-view{grid-template-columns:1fr;gap:8px;}
-.halls-grid.list-view .hall-card{display:flex;align-items:center;justify-content:space-between;padding:0 18px;min-height:70px;border:none;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.15);position:relative;overflow:hidden;background-size:cover;background-position:center;}
+.halls-grid.list-view .hall-card{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 18px;min-height:70px;border:none;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.15);position:relative;overflow:hidden;background-size:cover;background-position:center;gap:10px;}
 .halls-grid.list-view .hall-card::before{content:'';position:absolute;top:0;right:0;bottom:0;left:0;background:linear-gradient(90deg,rgba(26,26,46,0.6) 0%,rgba(26,26,46,0.35) 50%,rgba(26,26,46,0.6) 100%);z-index:0;}
 .halls-grid.list-view .hall-card:hover::before{background:linear-gradient(90deg,rgba(26,26,46,0.5) 0%,rgba(26,26,46,0.25) 50%,rgba(26,26,46,0.5) 100%);}
 .halls-grid.list-view .hall-card .list-thumb,.halls-grid.list-view .hall-card .list-thumb-empty{display:none;}
@@ -196,6 +196,17 @@ function logHallView(name){
 }
 let halls=[],currentHall=null,currentImageIndex=0,currentView='grid-large';
 
+function applyHallOrder(list, settings){
+  try{
+    const order=JSON.parse((settings&&settings.hallOrder)||'[]');
+    if(!order.length) return list;
+    return [...list].sort((a,b)=>{
+      const ai=order.indexOf(a.name), bi=order.indexOf(b.name);
+      return (ai===-1?9999:ai)-(bi===-1?9999:bi);
+    });
+  }catch(e){ return list; }
+}
+
 async function loadHalls(){
   try{
     const cached=sessionStorage.getItem('alldata');
@@ -203,13 +214,15 @@ async function loadHalls(){
       const bundle=JSON.parse(cached);
       const cachedHalls=(bundle.halls||[]).filter(h=>h.name);
       if(cachedHalls.length){
-        halls=cachedHalls;
+        halls=applyHallOrder(cachedHalls, bundle.settings||{});
         renderGrid();
         return;
       }
     }
-    const res=await fetch(API_URL+'?action=halls');
-    halls=(await res.json()).filter(h=>h.name);
+    const [r1,r2]=await Promise.all([fetch(API_URL+'?action=halls'),fetch(API_URL+'?action=settings')]);
+    const rawHalls=(await r1.json()).filter(h=>h.name);
+    const settings=r2.ok?await r2.json():{};
+    halls=applyHallOrder(rawHalls, settings);
     renderGrid();
   }catch(e){
     console.error('loadHalls error:',e);
@@ -404,6 +417,12 @@ function closeFullscreen(e){
 
 loadHalls();
 logVisit('halls');
+const _pageStart=Date.now();
+window.addEventListener('pagehide',function(){
+  const sec=Math.round((Date.now()-_pageStart)/1000);
+  if(sec<2) return;
+  try{fetch(API_URL+'?action=logDuration&seconds='+sec+'&t='+Date.now(),{keepalive:true});}catch(e){}
+});
 </script>
 </body>
 </html>
