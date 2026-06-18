@@ -7,11 +7,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://script.google.com">
 <link rel="dns-prefetch" href="https://www.googletagmanager.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-H8MXTNM0HY"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-H8MXTNM0HY');</script>
 <title>זמינות אולמות חתונה</title>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Rubik',sans-serif;background:#f7f5f0;color:#1a1a1a;min-height:100vh;display:flex;flex-direction:column;font-weight:400;}
 body.has-bottom-ad{padding-bottom:2.5cm;}
@@ -413,11 +413,14 @@ function safeParse(str,fallback){
 }
 // Log visit to Google Sheets (fire and forget, never blocks the page)
 function logVisit(page){
-  try{
+  // Fire after load + idle so the slow Apps Script beacon never extends the load event.
+  const fire=()=>{try{
     const device=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?'mobile':'desktop';
-    const img=new Image();
-    img.src=API_URL+'?action=logVisit&page='+encodeURIComponent(page)+'&device='+device+'&t='+Date.now();
-  }catch(e){}
+    new Image().src=API_URL+'?action=logVisit&page='+encodeURIComponent(page)+'&device='+device+'&t='+Date.now();
+  }catch(e){}};
+  const sched=()=>(window.requestIdleCallback||setTimeout)(fire,1);
+  if(document.readyState==='complete') sched();
+  else window.addEventListener('load',sched,{once:true});
 }
 function logHallView(name){
   try{
@@ -985,36 +988,84 @@ function applyHebrewMonthFilter(){
   applyFilters();
 }
 
+const CACHE_KEY='hallCacheV2';
+
+// The table only ever shows today→+365d. Drop rows outside a [-7d,+400d] window
+// so we don't parse/cache ~24 years of data (152K rows / 8MB) to show one year.
+function trimAvail(rows){
+  if(!Array.isArray(rows)||!rows.length) return rows||[];
+  const now=new Date();now.setHours(0,0,0,0);
+  const loT=now.getTime()-7*864e5, hiT=now.getTime()+400*864e5;
+  const dateKey=Object.keys(rows[0]).find(k=>k.toLowerCase().indexOf('date')>-1);
+  if(!dateKey) return rows;
+  const out=[];
+  for(let i=0;i<rows.length;i++){
+    const raw=(rows[i][dateKey]||'')+'';let t=NaN,p;
+    if(raw.indexOf('/')>-1){p=raw.split('/');t=new Date(+p[2],+p[1]-1,+p[0]).getTime();}
+    else if(raw.indexOf('T')>-1||raw.indexOf(':')>-1){t=Date.parse(raw);}
+    else if(raw.indexOf('-')>-1){p=raw.split('-');t=new Date(+p[0],+p[1]-1,+p[2]).getTime();}
+    if(isNaN(t)||(t>=loT&&t<=hiT)) out.push(rows[i]); // keep in-window or unparseable
+  }
+  return out;
+}
+
+// Process + render a complete data triplet. Returns true if data was usable.
+function applyData(availData,settingsData,hallsData){
+  settingsData=settingsData||{};hallsData=hallsData||[];
+  window._settings=settingsData;
+  window._hallDetails=hallsData;
+  initDayToggles();
+  allData=parseAPI(availData);
+  if(!allData.length) return false;
+  const map={};
+  (hallsData||[]).forEach(d=>{map[d.name]={city:d.city||'',kashrut:d.kashrut||'',access:d.access||'',seats:parseInt(d.seats)||0};});
+  allData.forEach(r=>{if(map[r.hall]){r.city=map[r.hall].city;r.kashrut=map[r.hall].kashrut;r.access=map[r.hall].access;r.seats=map[r.hall].seats;}});
+  populateFilters();
+  if(!document.getElementById('filterFrom').value){
+    const t=new Date(),e=new Date();e.setDate(t.getDate()+365);
+    document.getElementById('filterFrom').value=t.toISOString().split('T')[0];
+    document.getElementById('filterTo').value=e.toISOString().split('T')[0];
+  }
+  document.getElementById('loading').style.display='none';
+  buildTable();
+  loadSettings();
+  return true;
+}
+
 async function fetchData(){
   sessionStorage.removeItem('hd');sessionStorage.removeItem('ht');
+  try{localStorage.removeItem('hallCacheV1');}catch(e){} // drop legacy oversized cache
+  // 1) Instant render from cache (stale-while-revalidate)
+  let renderedFromCache=false, cachedRaw=null;
   try{
-    let availData, settingsData={}, hallsData=[];
+    cachedRaw=localStorage.getItem(CACHE_KEY);
+    if(cachedRaw){
+      const c=JSON.parse(cachedRaw);
+      renderedFromCache=applyData(c.avail,c.settings,c.halls);
+    }
+  }catch(e){}
+  // 2) Refresh from network — in background if cache already rendered
+  try{
     const [r1,r2,r3]=await Promise.all([
       fetch(API_URL),
       fetch(API_URL+'?action=settings'),
       fetch(API_URL+'?action=halls')
     ]);
-    availData=r1.ok?await r1.json():[];
-    settingsData=r2.ok?await r2.json():{};
-    hallsData=r3.ok?await r3.json():[];
-    window._settings=settingsData;
-    window._hallDetails=hallsData;
-    initDayToggles();
-    allData=parseAPI(availData);
-    if(!allData.length)throw new Error('empty');
-    const map={};
-    (hallsData||[]).forEach(d=>{map[d.name]={city:d.city||'',kashrut:d.kashrut||'',access:d.access||'',seats:parseInt(d.seats)||0};});
-    allData.forEach(r=>{if(map[r.hall]){r.city=map[r.hall].city;r.kashrut=map[r.hall].kashrut;r.access=map[r.hall].access;r.seats=map[r.hall].seats;}});
-    populateFilters();
-    const t=new Date(),e=new Date();e.setDate(t.getDate()+365);
-    document.getElementById('filterFrom').value=t.toISOString().split('T')[0];
-    document.getElementById('filterTo').value=e.toISOString().split('T')[0];
-    document.getElementById('loading').style.display='none';
-    buildTable();
-    loadSettings();
+    const availData=trimAvail(r1.ok?await r1.json():[]);
+    const settingsData=r2.ok?await r2.json():{};
+    const hallsData=r3.ok?await r3.json():[];
+    const fresh=JSON.stringify({avail:availData,settings:settingsData,halls:hallsData});
+    // Data unchanged since cache render → skip the expensive second render
+    if(renderedFromCache&&cachedRaw===fresh) return;
+    const ok=applyData(availData,settingsData,hallsData);
+    if(ok){
+      try{localStorage.setItem(CACHE_KEY,fresh);}catch(e){}
+    } else if(!renderedFromCache){
+      throw new Error('empty');
+    }
   }catch(err){
-    document.getElementById('loading').style.display='none';
-    if(!allData.length){
+    if(!renderedFromCache&&!allData.length){
+      document.getElementById('loading').style.display='none';
       document.getElementById('errorMsg').style.display='block';
       document.getElementById('errorMsg').textContent='שגיאה בטעינת הנתונים.';
     }
