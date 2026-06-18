@@ -126,21 +126,6 @@ th{padding:8px 5px;text-align:center;font-weight:600;font-size:0.65rem;white-spa
 th.date-col{text-align:right;min-width:100px;position:sticky;right:0;background:#1a1a2e;z-index:12;border-left:none;}
 td{padding:0;text-align:center;border-bottom:1px solid #ede8e0;border-left:1px solid #ede8e0;height:32px;background:white;}
 tr.hidden-day-gap td{height:11px;padding:0;background:linear-gradient(135deg,#dde3f0 25%,#e4e9f5 25%,#e4e9f5 50%,#dde3f0 50%,#dde3f0 75%,#e4e9f5 75%);background-size:8px 8px;border:none;}
-.sidebar-tabs{display:flex;gap:0;margin-bottom:12px;border-bottom:2px solid #1a1a2e;}
-.sidebar-tab{flex:1;padding:6px 0;background:none;border:none;border-bottom:3px solid transparent;margin-bottom:-2px;font-family:'Rubik',sans-serif;font-size:0.78rem;font-weight:700;color:#999;cursor:pointer;transition:color 0.15s;}
-.sidebar-tab.active{color:#1a1a2e;border-bottom-color:#e8b86d;}
-.sidebar-panel{display:none;}.sidebar-panel.active{display:block;}
-.date-hide-list{overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding-bottom:8px;}
-.hide-cal-month{background:#fff;border:1px solid #e8e4dc;border-radius:8px;padding:8px;}
-.hide-cal-title{font-size:0.78rem;font-weight:700;color:#1a1a2e;text-align:center;margin-bottom:6px;}
-.hide-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
-.hide-cal-header{text-align:center;font-size:0.6rem;color:#aaa;font-weight:700;padding:2px 0;}
-.hide-cal-cell{aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.68rem;font-weight:700;cursor:pointer;border:none;font-family:'Rubik',sans-serif;transition:filter 0.15s;line-height:1;}
-.hide-cal-cell:hover{filter:brightness(0.9);}
-.hide-cal-cell.hc-visible{background:#d4f5e4;color:#1a7a45;}
-.hide-cal-cell.hc-hidden{background:#fde8e8;color:#a32020;}
-.hide-cal-cell.hc-empty{background:transparent;cursor:default;}
-.hide-cal-cell.hc-empty:hover{filter:none;}
 td.date-cell{text-align:right;font-weight:600;color:#333;white-space:nowrap;background:#fafaf7;position:sticky;right:0;border-left:2px solid #d5cfc4;border-right:none;padding:3px 5px;z-index:6;cursor:pointer;}
 td.date-cell:hover{background:#e8e4dc;}
 td.date-cell.selected{background:#1a1a2e;color:#e8b86d;}
@@ -269,90 +254,79 @@ th.hall-name-th:hover{background:#2a2a4e;}
 <div class="main-layout">
   <!-- SIDEBAR -->
   <div class="sidebar" id="mainSidebar">
-    <div class="sidebar-tabs">
-      <button class="sidebar-tab active" id="tabSinun" onclick="switchSidebarTab('sinun')">🔍 סינון</button>
-      <button class="sidebar-tab" id="tabDates" onclick="switchSidebarTab('dates')">📅 תאריכים</button>
-    </div>
+    <div class="sidebar-title">🔍 סינון</div>
 
-    <!-- לשונית סינון -->
-    <div class="sidebar-panel active" id="panelSinun">
-      <div class="filter-group">
-        <span class="filter-label">מתאריך</span>
-        <input type="date" id="filterFrom" class="filter-input"/>
-      </div>
-      <div class="filter-group">
-        <span class="filter-label">עד תאריך</span>
-        <input type="date" id="filterTo" class="filter-input"/>
-      </div>
-      <div class="filter-group">
-        <span class="filter-label" style="font-size:0.65rem;color:#999">או חפש חודש עברי</span>
-        <select id="filterHeMonth" class="filter-input" onchange="applyHebrewMonthFilter()" style="font-size:0.75rem;">
-          <option value="">-- בחר חודש עברי --</option>
-          <option value="תשרי">החל מ-תשרי</option><option value="חשון">החל מ-חשון</option>
-          <option value="כסלו">החל מ-כסלו</option><option value="טבת">החל מ-טבת</option>
-          <option value="שבט">החל מ-שבט</option><option value="אדר">החל מ-אדר</option>
-          <option value="אדר ב">החל מ-אדר ב</option><option value="ניסן">החל מ-ניסן</option>
-          <option value="אייר">החל מ-אייר</option><option value="סיון">החל מ-סיון</option>
-          <option value="תמוז">החל מ-תמוז</option><option value="אב">החל מ-אב</option>
-          <option value="אלול">החל מ-אלול</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <span class="filter-label">עיר</span>
-        <div class="dropdown-check">
-          <button class="dropdown-btn" id="btnCity" onclick="toggleDD('listCity','btnCity')"><span id="lblCity">הכל</span></button>
-          <div class="dropdown-list" id="listCity"></div>
-        </div>
-      </div>
-      <div class="filter-group">
-        <span class="filter-label">כשרות</span>
-        <div class="dropdown-check">
-          <button class="dropdown-btn" id="btnKashrut" onclick="toggleDD('listKashrut','btnKashrut')"><span id="lblKashrut">הכל</span></button>
-          <div class="dropdown-list" id="listKashrut"></div>
-        </div>
-      </div>
-      <div class="filter-group">
-        <span class="filter-label">אולם</span>
-        <div class="dropdown-check">
-          <button class="dropdown-btn" id="btnHall" onclick="toggleDD('listHall','btnHall')"><span id="lblHall">הכל</span></button>
-          <div class="dropdown-list" id="listHall"></div>
-        </div>
-      </div>
-      <div class="filter-group">
-        <span class="filter-label">מס' מקומות</span>
-        <div class="range-row">
-          <input type="number" id="seatsMin" placeholder="מינ'" />
-          <span>—</span>
-          <input type="number" id="seatsMax" placeholder="מקס'" />
-        </div>
-      </div>
-      <div class="filter-group">
-        <span class="filter-label">נגישות</span>
-        <div class="dropdown-check">
-          <button class="dropdown-btn" id="btnAccess" onclick="toggleDD('listAccess','btnAccess')"><span id="lblAccess">הכל</span></button>
-          <div class="dropdown-list" id="listAccess"></div>
-        </div>
-      </div>
-      <div class="filter-group">
-        <span class="filter-label">הצג ימים</span>
-        <div class="day-toggles" id="dayToggles">
-          <button class="day-toggle-btn" id="dayBtn0" onclick="toggleDayVisibility(0)">ראשון</button>
-          <button class="day-toggle-btn" id="dayBtn1" onclick="toggleDayVisibility(1)">שני</button>
-          <button class="day-toggle-btn" id="dayBtn2" onclick="toggleDayVisibility(2)">שלישי</button>
-          <button class="day-toggle-btn" id="dayBtn3" onclick="toggleDayVisibility(3)">רביעי</button>
-          <button class="day-toggle-btn" id="dayBtn4" onclick="toggleDayVisibility(4)">חמישי</button>
-          <button class="day-toggle-btn" id="dayBtn5" onclick="toggleDayVisibility(5)">שישי</button>
-          <button class="day-toggle-btn" id="dayBtn6" onclick="toggleDayVisibility(6)">שבת</button>
-        </div>
-      </div>
-      <button class="btn-filter" onclick="applyFilters()">סנן</button>
-      <button class="btn-reset" onclick="resetFilters()">איפוס</button>
+    <div class="filter-group">
+      <span class="filter-label">מתאריך</span>
+      <input type="date" id="filterFrom" class="filter-input"/>
     </div>
-
-    <!-- לשונית תאריכים -->
-    <div class="sidebar-panel" id="panelDates">
-      <div class="date-hide-list" id="dateHideList"></div>
+    <div class="filter-group">
+      <span class="filter-label">עד תאריך</span>
+      <input type="date" id="filterTo" class="filter-input"/>
     </div>
+    <div class="filter-group">
+      <span class="filter-label" style="font-size:0.65rem;color:#999">או חפש חודש עברי</span>
+      <select id="filterHeMonth" class="filter-input" onchange="applyHebrewMonthFilter()" style="font-size:0.75rem;">
+        <option value="">-- בחר חודש עברי --</option>
+        <option value="תשרי">החל מ-תשרי</option><option value="חשון">החל מ-חשון</option>
+        <option value="כסלו">החל מ-כסלו</option><option value="טבת">החל מ-טבת</option>
+        <option value="שבט">החל מ-שבט</option><option value="אדר">החל מ-אדר</option>
+        <option value="אדר ב">החל מ-אדר ב</option><option value="ניסן">החל מ-ניסן</option>
+        <option value="אייר">החל מ-אייר</option><option value="סיון">החל מ-סיון</option>
+        <option value="תמוז">החל מ-תמוז</option><option value="אב">החל מ-אב</option>
+        <option value="אלול">החל מ-אלול</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">עיר</span>
+      <div class="dropdown-check">
+        <button class="dropdown-btn" id="btnCity" onclick="toggleDD('listCity','btnCity')"><span id="lblCity">הכל</span></button>
+        <div class="dropdown-list" id="listCity"></div>
+      </div>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">כשרות</span>
+      <div class="dropdown-check">
+        <button class="dropdown-btn" id="btnKashrut" onclick="toggleDD('listKashrut','btnKashrut')"><span id="lblKashrut">הכל</span></button>
+        <div class="dropdown-list" id="listKashrut"></div>
+      </div>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">אולם</span>
+      <div class="dropdown-check">
+        <button class="dropdown-btn" id="btnHall" onclick="toggleDD('listHall','btnHall')"><span id="lblHall">הכל</span></button>
+        <div class="dropdown-list" id="listHall"></div>
+      </div>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">מס' מקומות</span>
+      <div class="range-row">
+        <input type="number" id="seatsMin" placeholder="מינ'" />
+        <span>—</span>
+        <input type="number" id="seatsMax" placeholder="מקס'" />
+      </div>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">נגישות</span>
+      <div class="dropdown-check">
+        <button class="dropdown-btn" id="btnAccess" onclick="toggleDD('listAccess','btnAccess')"><span id="lblAccess">הכל</span></button>
+        <div class="dropdown-list" id="listAccess"></div>
+      </div>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">הצג ימים</span>
+      <div class="day-toggles" id="dayToggles">
+        <button class="day-toggle-btn" id="dayBtn0" onclick="toggleDayVisibility(0)">ראשון</button>
+        <button class="day-toggle-btn" id="dayBtn1" onclick="toggleDayVisibility(1)">שני</button>
+        <button class="day-toggle-btn" id="dayBtn2" onclick="toggleDayVisibility(2)">שלישי</button>
+        <button class="day-toggle-btn" id="dayBtn3" onclick="toggleDayVisibility(3)">רביעי</button>
+        <button class="day-toggle-btn" id="dayBtn4" onclick="toggleDayVisibility(4)">חמישי</button>
+        <button class="day-toggle-btn" id="dayBtn5" onclick="toggleDayVisibility(5)">שישי</button>
+        <button class="day-toggle-btn" id="dayBtn6" onclick="toggleDayVisibility(6)">שבת</button>
+      </div>
+    </div>
+    <button class="btn-filter" onclick="applyFilters()">סנן</button>
+    <button class="btn-reset" onclick="resetFilters()">איפוס</button>
   </div>
 
   <!-- TABLE AREA -->
@@ -463,74 +437,11 @@ let allData=[], currentView='table', calYear, calMonth, calHall='', selectedDate
 let localHiddenDays=[];
 const localHiddenDates=new Set();
 
-function switchSidebarTab(tab){
-  document.getElementById('tabSinun').classList.toggle('active',tab==='sinun');
-  document.getElementById('tabDates').classList.toggle('active',tab==='dates');
-  document.getElementById('panelSinun').classList.toggle('active',tab==='sinun');
-  document.getElementById('panelDates').classList.toggle('active',tab==='dates');
-}
-
-function renderDateHideList(){
-  const list=document.getElementById('dateHideList');
-  if(!list) return;
-  const today=new Date();today.setHours(0,0,0,0);
-  const end=new Date();end.setDate(today.getDate()+365);
-  const fv=document.getElementById('filterFrom').value,tv=document.getElementById('filterTo').value;
-  const from=fv?new Date(fv):today,to=tv?new Date(tv):end;
-  const dates=genDates(from,to);
-
-  // קבץ לפי חודש
-  const months=[];
-  dates.forEach(d=>{
-    const mk=d.getFullYear()*12+d.getMonth();
-    if(!months.length||months[months.length-1].mk!==mk)
-      months.push({mk,year:d.getFullYear(),month:d.getMonth(),days:[]});
-    months[months.length-1].days.push(new Date(d));
-  });
-
-  const DAY_LABELS=['א','ב','ג','ד','ה','ו','ש'];
-  const MONTH_NAMES=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
-
-  list.innerHTML=months.map(({year,month,days})=>{
-    const firstDay=new Date(year,month,1).getDay();
-    const totalCells=firstDay+new Date(year,month+1,0).getDate();
-    const rows=Math.ceil(totalCells/7);
-    // בנה מפת תאריכים לחודש
-    const dayMap={};
-    days.forEach(d=>{ dayMap[d.getDate()]=fmtKey(d); });
-
-    let cells='';
-    for(let i=0;i<rows*7;i++){
-      const dayNum=i-firstDay+1;
-      const inRange=dayMap[dayNum];
-      if(i<firstDay||dayNum>new Date(year,month+1,0).getDate()||!inRange){
-        cells+=`<span class="hide-cal-cell hc-empty"></span>`;
-      } else {
-        const key=inRange;
-        const hidden=localHiddenDates.has(key);
-        cells+=`<button class="hide-cal-cell ${hidden?'hc-hidden':'hc-visible'}" onclick="toggleDateVisibility('${key}')">${dayNum}</button>`;
-      }
-    }
-    return `<div class="hide-cal-month">
-      <div class="hide-cal-title">${MONTH_NAMES[month]} ${year}</div>
-      <div class="hide-cal-grid">
-        ${DAY_LABELS.map(l=>`<div class="hide-cal-header">${l}</div>`).join('')}
-        ${cells}
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function toggleDateVisibility(key){
-  if(localHiddenDates.has(key)) localHiddenDates.delete(key);
-  else localHiddenDates.add(key);
-  renderDateHideList();
-  buildTable();
-}
-
 function initDayToggles(){
   try{ localHiddenDays=JSON.parse((window._settings&&window._settings.hiddenDays)||'[]'); }catch(e){ localHiddenDays=[]; }
   localHiddenDays.forEach(i=>{ const b=document.getElementById('dayBtn'+i); if(b) b.classList.add('hidden-day'); });
+  localHiddenDates.clear();
+  try{ JSON.parse((window._settings&&window._settings.hiddenDates)||'[]').forEach(k=>localHiddenDates.add(k)); }catch(e){}
 }
 
 function toggleDayVisibility(i){
@@ -787,7 +698,6 @@ function buildTable(){
   });
   document.getElementById('tableBody').innerHTML=body;
   document.getElementById('mainTable').style.display='table';
-  renderDateHideList();
 }
 
 function clickDate(key){

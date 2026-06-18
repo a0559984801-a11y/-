@@ -58,6 +58,16 @@ textarea{resize:vertical;min-height:70px;}
 .btn-save{padding:9px 20px;background:#1a1a2e;color:white;border:none;border-radius:6px;cursor:pointer;font-family:'Rubik',sans-serif;font-weight:600;font-size:0.88rem;margin-top:8px;}
 .btn-save:disabled{opacity:0.6;cursor:wait;}
 .ok{color:#1a7a45;font-size:0.78rem;margin-top:6px;display:none;}
+.hc-month{background:#fafaf7;border:1px solid #e8e4dc;border-radius:10px;padding:12px;}
+.hc-title{font-size:0.9rem;font-weight:700;color:#1a1a2e;text-align:center;margin-bottom:8px;}
+.hc-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.hc-header{text-align:center;font-size:0.68rem;color:#aaa;font-weight:700;padding:3px 0;}
+.hc-cell{aspect-ratio:1;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:700;cursor:pointer;border:none;font-family:'Rubik',sans-serif;transition:filter 0.15s;}
+.hc-cell:hover{filter:brightness(0.88);}
+.hc-green{background:#d4f5e4;color:#1a7a45;}
+.hc-red{background:#fde8e8;color:#a32020;}
+.hc-empty{background:transparent;cursor:default;pointer-events:none;}
+.hc-out{background:#f5f5f5;color:#ccc;cursor:default;pointer-events:none;font-size:0.68rem;}
 .err{color:#e74c3c;font-size:0.78rem;margin-top:4px;display:none;}
 .warn{background:#fef3cd;border:1px solid #f39c12;border-radius:6px;padding:10px 14px;font-size:0.82rem;color:#8a5c00;margin-bottom:12px;}
 .toggle-row{display:flex;align-items:center;gap:10px;margin:10px 0;}
@@ -140,6 +150,7 @@ textarea{resize:vertical;min-height:70px;}
     <button class="nav-btn" onclick="show('ad',event)">📢 פרסומות</button>
     <button class="nav-btn" onclick="show('order',event)">↕️ סדר טורי הטבלה</button>
     <button class="nav-btn" onclick="show('hidden-days',event)">🗓 ימים מוסתרים</button>
+    <button class="nav-btn" onclick="show('hidden-dates',event)">📅 תאריכים מוסתרים</button>
     <button class="nav-btn" onclick="show('contact',event)">📬 יצירת קשר</button>
     <button class="nav-btn" onclick="show('security',event)">🔑 סיסמה</button>
     <div style="border-top:1px solid #2a2a4e;margin:12px 0;"></div>
@@ -287,6 +298,17 @@ textarea{resize:vertical;min-height:70px;}
           <button onclick="resetOrder()" style="padding:8px 14px;background:#eee;color:#444;border:none;border-radius:6px;cursor:pointer;font-family:Rubik;font-size:0.82rem;">↺ איפוס לסדר אלפביתי</button>
         </div>
         <div class="ok" id="orderOk">✓ נשמר!</div>
+      </div>
+    </div>
+
+    <!-- HIDDEN DATES -->
+    <div class="panel" id="panel-hidden-dates">
+      <h2>📅 תאריכים מוסתרים בטבלה</h2>
+      <div class="card">
+        <p style="font-size:0.82rem;color:#666;margin-bottom:16px">לחץ על תאריך כדי להסתיר/להציג אותו. <span style="display:inline-block;background:#d4f5e4;color:#1a7a45;border-radius:4px;padding:1px 6px;font-size:0.75rem;font-weight:700">ירוק</span> = מוצג &nbsp; <span style="display:inline-block;background:#fde8e8;color:#a32020;border-radius:4px;padding:1px 6px;font-size:0.75rem;font-weight:700">אדום</span> = מוסתר</p>
+        <div id="hideDateCalendar" style="display:flex;flex-direction:column;gap:16px;max-height:65vh;overflow-y:auto;padding-left:4px;"></div>
+        <button class="btn-save" onclick="saveHiddenDates()" style="margin-top:18px;">💾 שמור לשרת</button>
+        <div class="ok" id="hiddenDatesOk">✓ נשמר!</div>
       </div>
     </div>
 
@@ -467,6 +489,7 @@ function show(name,e){
   e.target.classList.add('active');
   if(name==='order') renderOrderList();
   if(name==='stats') loadStats();
+  if(name==='hidden-dates') renderHideCalendar();
 }
 function showOk(id){const el=document.getElementById(id);el.style.display='block';setTimeout(()=>el.style.display='none',2500);}
 
@@ -537,6 +560,8 @@ function applySettings(){
   document.getElementById('contactEmail').value=settings.contactEmail||'';
   try{ hiddenDays=JSON.parse(settings.hiddenDays||'[]'); }catch(e){ hiddenDays=[]; }
   hiddenDays.forEach(i=>{ const cb=document.getElementById('hideDay'+i); if(cb) cb.checked=true; });
+  adminHiddenDates=new Set();
+  try{ JSON.parse(settings.hiddenDates||'[]').forEach(k=>adminHiddenDates.add(k)); }catch(e){}
   ['Top','Bottom','Side'].forEach(pos=>{
     const val=settings['showAd'+pos]; const show=val!==false&&val!=='false'&&val!=='FALSE';
     adState[pos]=show;
@@ -977,6 +1002,7 @@ async function saveAll(){
       contactEmail: document.getElementById('contactEmail').value,
       hallOrder: JSON.stringify(hallOrder),
       hiddenDays: JSON.stringify(hiddenDays),
+      hiddenDates: JSON.stringify([...adminHiddenDates]),
       ...adPayload
     });
   }catch(e){ console.error('saveAll error',e); }
@@ -984,6 +1010,81 @@ async function saveAll(){
   const ok=document.getElementById('saveAllOk');
   ok.style.display='block';
   setTimeout(()=>ok.style.display='none',3000);
+}
+
+// ===== תאריכים מוסתרים =====
+let adminHiddenDates=new Set();
+
+const HH_A=['','ק','ר','ש','ת'];
+const HT_A=['','י','כ','ל','מ','נ','ס','ע','פ','צ'];
+const HO_A=['','א','ב','ג','ד','ה','ו','ז','ח','ט'];
+function yearHeA(y){const n=y%1000,h=Math.floor(n/100),t=Math.floor((n%100)/10),o=n%10;let r=(HH_A[h]||'')+(HT_A[t]||'')+(HO_A[o]||'');return r.length>1?r.slice(0,-1)+'"'+r.slice(-1):r+"'";}
+function fmtKeyA(d){return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();}
+
+function renderHideCalendar(){
+  const container=document.getElementById('hideDateCalendar');
+  if(!container) return;
+  const today=new Date();today.setHours(0,0,0,0);
+  const end=new Date();end.setDate(today.getDate()+400);
+  // צור רשימת תאריכים
+  const dates=[];
+  for(let d=new Date(today);d<=end;d.setDate(d.getDate()+1)) dates.push(new Date(d));
+  // קבץ לפי חודש עברי
+  const months=[],mkMap={};
+  dates.forEach(d=>{
+    const r=d.toLocaleDateString('he-IL-u-ca-hebrew',{year:'numeric',month:'long',day:'numeric'});
+    const m=r.match(/(\d+)\s+ב?(\S+)\s+(\d+)/);
+    if(!m) return;
+    const mk=m[2]+'_'+m[3];
+    if(!mkMap[mk]){mkMap[mk]={name:m[2],year:+m[3],entries:[]};months.push(mkMap[mk]);}
+    mkMap[mk].entries.push({d:new Date(d),heDay:+m[1],key:fmtKeyA(d)});
+  });
+  const DAY_LABELS=['א','ב','ג','ד','ה','ו','ש'];
+  container.innerHTML=months.map(({name,year,entries})=>{
+    // מצא את היום-הראשון של החודש העברי
+    const first=entries[0];
+    const firstOfMonth=new Date(first.d);
+    firstOfMonth.setDate(firstOfMonth.getDate()-(first.heDay-1));
+    const offset=firstOfMonth.getDay();
+    // ספור כמה ימים בחודש
+    let totalDays=0;
+    const test=new Date(firstOfMonth);
+    const mk=name+'_'+year;
+    while(true){
+      const r2=test.toLocaleDateString('he-IL-u-ca-hebrew',{year:'numeric',month:'long',day:'numeric'});
+      const m2=r2.match(/(\d+)\s+ב?(\S+)\s+(\d+)/);
+      if(!m2||m2[2]+'_'+m2[3]!==mk) break;
+      totalDays++;test.setDate(test.getDate()+1);
+    }
+    // מפת heDay→key לתאריכים בטווח
+    const dayMap={};
+    entries.forEach(({heDay,key})=>{ dayMap[heDay]=key; });
+    // בנה תאים
+    let cells='';
+    const rows=Math.ceil((offset+totalDays)/7);
+    for(let i=0;i<rows*7;i++){
+      const dayNum=i-offset+1;
+      if(dayNum<1||dayNum>totalDays){cells+=`<span class="hc-cell hc-empty"></span>`;continue;}
+      if(!dayMap[dayNum]){cells+=`<span class="hc-cell hc-out">${dayNum}</span>`;continue;}
+      const key=dayMap[dayNum];
+      const hidden=adminHiddenDates.has(key);
+      cells+=`<button class="hc-cell ${hidden?'hc-red':'hc-green'}" onclick="toggleAdminDate('${key}')">${dayNum}</button>`;
+    }
+    return `<div class="hc-month"><div class="hc-title">${name} ${yearHeA(year)}</div><div class="hc-grid">${DAY_LABELS.map(l=>`<div class="hc-header">${l}</div>`).join('')}${cells}</div></div>`;
+  }).join('');
+}
+
+function toggleAdminDate(key){
+  if(adminHiddenDates.has(key)) adminHiddenDates.delete(key);
+  else adminHiddenDates.add(key);
+  renderHideCalendar();
+}
+
+async function saveHiddenDates(){
+  const arr=[...adminHiddenDates];
+  await postData('settings',{hiddenDates:JSON.stringify(arr)});
+  settings.hiddenDates=JSON.stringify(arr);
+  showOk('hiddenDatesOk');
 }
 
 function toggleHiddenDay(i,checked){
