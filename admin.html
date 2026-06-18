@@ -139,6 +139,7 @@ textarea{resize:vertical;min-height:70px;}
     <button class="nav-btn" onclick="show('logo',event)">🖼 לוגו וכותרת</button>
     <button class="nav-btn" onclick="show('ad',event)">📢 פרסומות</button>
     <button class="nav-btn" onclick="show('order',event)">↕️ סדר טורי הטבלה</button>
+    <button class="nav-btn" onclick="show('hidden-days',event)">🗓 ימים מוסתרים</button>
     <button class="nav-btn" onclick="show('contact',event)">📬 יצירת קשר</button>
     <button class="nav-btn" onclick="show('security',event)">🔑 סיסמה</button>
     <div style="border-top:1px solid #2a2a4e;margin:12px 0;"></div>
@@ -289,6 +290,25 @@ textarea{resize:vertical;min-height:70px;}
       </div>
     </div>
 
+    <!-- HIDDEN DAYS -->
+    <div class="panel" id="panel-hidden-days">
+      <h2>🗓 ימים מוסתרים בטבלה</h2>
+      <div class="card">
+        <p style="font-size:0.82rem;color:#666;margin-bottom:16px">סמן כל יום שלא יוצג בטבלה — ניתן לבחור מספר ימים. במקום כל יום מוסתר תופיע שורה ריקה קצרה.</p>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:0.88rem;"><input type="checkbox" id="hideDay0" onchange="toggleHiddenDay(0,this.checked)" style="width:16px;height:16px;cursor:pointer;accent-color:#1a1a2e;"/> יום ראשון</label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:0.88rem;"><input type="checkbox" id="hideDay1" onchange="toggleHiddenDay(1,this.checked)" style="width:16px;height:16px;cursor:pointer;accent-color:#1a1a2e;"/> יום שני</label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:0.88rem;"><input type="checkbox" id="hideDay2" onchange="toggleHiddenDay(2,this.checked)" style="width:16px;height:16px;cursor:pointer;accent-color:#1a1a2e;"/> יום שלישי</label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:0.88rem;"><input type="checkbox" id="hideDay3" onchange="toggleHiddenDay(3,this.checked)" style="width:16px;height:16px;cursor:pointer;accent-color:#1a1a2e;"/> יום רביעי</label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:0.88rem;"><input type="checkbox" id="hideDay4" onchange="toggleHiddenDay(4,this.checked)" style="width:16px;height:16px;cursor:pointer;accent-color:#1a1a2e;"/> יום חמישי</label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:0.88rem;"><input type="checkbox" id="hideDay5" onchange="toggleHiddenDay(5,this.checked)" style="width:16px;height:16px;cursor:pointer;accent-color:#1a1a2e;"/> יום שישי</label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:0.88rem;"><input type="checkbox" id="hideDay6" onchange="toggleHiddenDay(6,this.checked)" style="width:16px;height:16px;cursor:pointer;accent-color:#1a1a2e;"/> יום שבת</label>
+        </div>
+        <button class="btn-save" onclick="saveHiddenDays()" style="margin-top:18px;">💾 שמור לשרת</button>
+        <div class="ok" id="hiddenDaysOk">✓ נשמר!</div>
+      </div>
+    </div>
+
     <!-- CONTACT -->
     <div class="panel" id="panel-contact">
       <h2>📬 יצירת קשר</h2>
@@ -435,7 +455,7 @@ function renderBarChart(containerId,data){
   }).join('');
 }
 
-let settings={}, halls=[], hallOrder=[];
+let settings={}, halls=[], hallOrder=[], hiddenDays=[];
 let adState={Top:true,Bottom:true,Side:true};
 let adItems={Top:[],Bottom:[],Side:[]};
 let logoData='';
@@ -515,6 +535,8 @@ function applySettings(){
     logoData=settings.logo;
   }
   document.getElementById('contactEmail').value=settings.contactEmail||'';
+  try{ hiddenDays=JSON.parse(settings.hiddenDays||'[]'); }catch(e){ hiddenDays=[]; }
+  hiddenDays.forEach(i=>{ const cb=document.getElementById('hideDay'+i); if(cb) cb.checked=true; });
   ['Top','Bottom','Side'].forEach(pos=>{
     const val=settings['showAd'+pos]; const show=val!==false&&val!=='false'&&val!=='FALSE';
     adState[pos]=show;
@@ -559,9 +581,17 @@ function renderAdList(pos){
         <input type="text" value="${escHtml(ad.text||'')}" placeholder="טקסט הפרסומת" oninput="upAd('${pos}',${i},'text',this.value)"/>
         <label>קישור</label>
         <input type="url" value="${escHtml(ad.link||'')}" placeholder="https://..." oninput="upAd('${pos}',${i},'link',this.value)"/>
-        <label>תמונה (קישור Cloudinary)</label>
-        <input type="url" value="${escHtml(ad.img||'')}" placeholder="https://res.cloudinary.com/..." oninput="upAd('${pos}',${i},'img',this.value)"/>
-        ${ad.img?`<img src="${escHtml(ad.img)}" style="max-width:100%;max-height:80px;border-radius:6px;margin:4px 0 6px"/>`:''}  
+        <label>תמונה בסיסית</label>
+        <label style="font-size:0.7rem;color:#666;display:block;margin-bottom:2px">💻 מחשב:</label>
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
+          <input type="url" value="${escHtml(ad.img||'')}" placeholder="https://res.cloudinary.com/..." style="flex:1;padding:6px 8px;border:1px solid #ddd;border-radius:5px;font-family:Assistant;font-size:0.82rem" oninput="upAd('${pos}',${i},'img',this.value)"/>
+          ${ad.img?`<img src="${escHtml(ad.img)}" style="max-width:44px;max-height:44px;border-radius:5px;object-fit:cover;flex-shrink:0"/>`:''}
+        </div>
+        <label style="font-size:0.7rem;color:#666;display:block;margin-bottom:2px">📱 טלפון:</label>
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
+          <input type="url" value="${escHtml(ad.imgMobile||'')}" placeholder="https://res.cloudinary.com/... (אופציונלי)" style="flex:1;padding:6px 8px;border:1px solid #ddd;border-radius:5px;font-family:Assistant;font-size:0.82rem" oninput="upAd('${pos}',${i},'imgMobile',this.value)"/>
+          ${ad.imgMobile?`<img src="${escHtml(ad.imgMobile)}" style="max-width:44px;max-height:44px;border-radius:5px;object-fit:cover;flex-shrink:0"/>`:''}
+        </div>
         <label>סרטון (קישור Cloudinary)</label>
         <input type="url" value="${escHtml(ad.vid||'')}" placeholder="https://res.cloudinary.com/..." oninput="upAd('${pos}',${i},'vid',this.value)"/>
         <div style="margin-top:12px;border-top:1px dashed #ddd;padding-top:10px">
@@ -946,6 +976,7 @@ async function saveAll(){
       headerColor: document.getElementById('headerColor').value,
       contactEmail: document.getElementById('contactEmail').value,
       hallOrder: JSON.stringify(hallOrder),
+      hiddenDays: JSON.stringify(hiddenDays),
       ...adPayload
     });
   }catch(e){ console.error('saveAll error',e); }
@@ -953,6 +984,16 @@ async function saveAll(){
   const ok=document.getElementById('saveAllOk');
   ok.style.display='block';
   setTimeout(()=>ok.style.display='none',3000);
+}
+
+function toggleHiddenDay(i,checked){
+  if(checked){ if(!hiddenDays.includes(i)) hiddenDays.push(i); }
+  else{ hiddenDays=hiddenDays.filter(d=>d!==i); }
+}
+async function saveHiddenDays(){
+  await postData('settings',{hiddenDays:JSON.stringify(hiddenDays)});
+  settings.hiddenDays=JSON.stringify(hiddenDays);
+  showOk('hiddenDaysOk');
 }
 
 async function saveContact(){
