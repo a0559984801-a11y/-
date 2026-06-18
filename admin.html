@@ -458,20 +458,19 @@ function prevImg(input,prevId,dataVar){
 }
 
 // Save to server via GET (avoids CORS)
-async function saveToServer(action, params) {
-  let url = API_URL + '?action=' + action;
-  for (const key in params) {
-    const val = params[key] || '';
-    // Skip base64 images in URL - too long
-    if (val.startsWith('data:')) continue;
-    url += '&' + encodeURIComponent(key) + '=' + encodeURIComponent(val);
-  }
-  try { await fetch(url); } catch(e) { console.log('save error', e); }
+async function saveToServer(action, data) {
+  try {
+    await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({action, data}),
+      headers: {'Content-Type': 'text/plain'}
+    });
+  } catch(e) { console.log('save error', e); }
 }
 
 async function postData(type, payload) {
   if (type === 'halls') {
-    await saveToServer('saveHalls', {data: JSON.stringify(payload)});
+    await saveToServer('saveHalls', payload);
   } else if (type === 'settings') {
     await saveToServer('saveSettings', payload);
   }
