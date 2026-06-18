@@ -236,6 +236,7 @@ textarea{resize:vertical;min-height:70px;}
             <span id="stTop" style="font-size:0.78rem;color:#2ecc71">פעיל</span>
           </div>
         </div>
+        <input type="text" id="adSearchTop" placeholder="🔍 חפש פרסומת..." oninput="filterAdList('Top')" style="width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid #ddd;border-radius:7px;font-family:Assistant;font-size:0.9rem;margin-bottom:10px"/>
         <div id="adListTop"></div>
         <button class="btn-add-ad" onclick="addAd('Top')">+ הוסף פרסומת</button>
       </div>
@@ -250,6 +251,7 @@ textarea{resize:vertical;min-height:70px;}
             <span id="stBottom" style="font-size:0.78rem;color:#2ecc71">פעיל</span>
           </div>
         </div>
+        <input type="text" id="adSearchBottom" placeholder="🔍 חפש פרסומת..." oninput="filterAdList('Bottom')" style="width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid #ddd;border-radius:7px;font-family:Assistant;font-size:0.9rem;margin-bottom:10px"/>
         <div id="adListBottom"></div>
         <button class="btn-add-ad" onclick="addAd('Bottom')">+ הוסף פרסומת</button>
       </div>
@@ -264,6 +266,7 @@ textarea{resize:vertical;min-height:70px;}
             <span id="stSide" style="font-size:0.78rem;color:#2ecc71">פעיל</span>
           </div>
         </div>
+        <input type="text" id="adSearchSide" placeholder="🔍 חפש פרסומת..." oninput="filterAdList('Side')" style="width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid #ddd;border-radius:7px;font-family:Assistant;font-size:0.9rem;margin-bottom:10px"/>
         <div id="adListSide"></div>
         <button class="btn-add-ad" onclick="addAd('Side')">+ הוסף פרסומת</button>
       </div>
@@ -541,39 +544,59 @@ function renderAdList(pos){
   const items=adItems[pos];
   if(!items.length){container.innerHTML='<p style="font-size:0.78rem;color:#aaa;margin-bottom:8px">אין פרסומות עדיין. לחץ "+ הוסף" להתחיל.</p>';return;}
   container.innerHTML=items.map((ad,i)=>`
-    <div class="ad-item">
-      <div class="ad-item-header">
-        <span class="ad-item-num">פרסומת ${i+1}</span>
-        <button class="ad-item-del" onclick="delAd('${pos}',${i})">🗑 מחק</button>
-      </div>
-      <label>טקסט</label>
-      <input type="text" value="${escHtml(ad.text||'')}" placeholder="טקסט הפרסומת" oninput="upAd('${pos}',${i},'text',this.value)"/>
-      <label>קישור</label>
-      <input type="url" value="${escHtml(ad.link||'')}" placeholder="https://..." oninput="upAd('${pos}',${i},'link',this.value)"/>
-      
-      <label>תמונה (קישור Cloudinary)</label>
-      <input type="url" value="${escHtml(ad.img||'')}" placeholder="https://res.cloudinary.com/..." oninput="upAd('${pos}',${i},'img',this.value)"/>
-      ${ad.img?`<img src="${escHtml(ad.img)}" style="max-width:100%;max-height:80px;border-radius:6px;margin:4px 0 6px"/>`:''} 
-      
-      <label>סרטון (קישור Cloudinary)</label>
-      <input type="url" value="${escHtml(ad.vid||'')}" placeholder="https://res.cloudinary.com/..." oninput="upAd('${pos}',${i},'vid',this.value)"/>
-      
-      <!-- Gallery: Multiple Images/Videos -->
-      <div style="margin-top:12px;border-top:1px dashed #ddd;padding-top:10px">
-        <div style="font-size:0.78rem;font-weight:700;color:#555;margin-bottom:8px">🖼️ גלריית תמונות/סרטונים</div>
-        <div id="adGallery_${pos}_${i}">
-          ${renderAdGallery(pos,i,ad.gallery||[])}
+    <div id="adCard_${pos}_${i}" style="border:1px solid #eee;border-radius:8px;margin-bottom:10px;background:#fafafa;overflow:hidden">
+      <div onclick="toggleAd('${pos}',${i})" style="display:flex;justify-content:space-between;align-items:center;padding:12px;cursor:pointer;user-select:none">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span id="adArrow_${pos}_${i}" style="font-size:0.85rem;transition:transform 0.2s;display:inline-block">▶</span>
+          <strong style="font-size:0.9rem;color:#1a1a2e">${ad.text||'פרסומת '+(i+1)}</strong>
         </div>
-        <button class="btn-add-field" onclick="addAdMedia('${pos}',${i})">+ הוסף תמונה/סרטון</button>
+        <button onclick="event.stopPropagation();delAd('${pos}',${i})" style="background:#fde8e8;color:#a32020;border:none;border-radius:5px;padding:3px 10px;cursor:pointer;font-size:0.78rem">מחק</button>
       </div>
-      
-      <div class="ad-duration-row">
-        <label>⏱ זמן הצגה:</label>
-        <input type="number" min="1" max="300" value="${ad.duration||5}" oninput="upAd('${pos}',${i},'duration',+this.value)"/>
-        <span>שניות</span>
+      <div id="adDetails_${pos}_${i}" style="display:none;padding:0 12px 12px">
+        <label style="margin-top:8px">טקסט</label>
+        <input type="text" value="${escHtml(ad.text||'')}" placeholder="טקסט הפרסומת" oninput="upAd('${pos}',${i},'text',this.value);updateAdTitle('${pos}',${i},this.value)"/>
+        <label>קישור</label>
+        <input type="url" value="${escHtml(ad.link||'')}" placeholder="https://..." oninput="upAd('${pos}',${i},'link',this.value)"/>
+        <label>תמונה (קישור Cloudinary)</label>
+        <input type="url" value="${escHtml(ad.img||'')}" placeholder="https://res.cloudinary.com/..." oninput="upAd('${pos}',${i},'img',this.value)"/>
+        ${ad.img?`<img src="${escHtml(ad.img)}" style="max-width:100%;max-height:80px;border-radius:6px;margin:4px 0 6px"/>`:''}
+        <label>סרטון (קישור Cloudinary)</label>
+        <input type="url" value="${escHtml(ad.vid||'')}" placeholder="https://res.cloudinary.com/..." oninput="upAd('${pos}',${i},'vid',this.value)"/>
+        <div style="margin-top:12px;border-top:1px dashed #ddd;padding-top:10px">
+          <div style="font-size:0.78rem;font-weight:700;color:#555;margin-bottom:8px">🖼️ גלריית תמונות/סרטונים</div>
+          <div id="adGallery_${pos}_${i}">${renderAdGallery(pos,i,ad.gallery||[])}</div>
+          <button class="btn-add-field" onclick="addAdMedia('${pos}',${i})">+ הוסף תמונה/סרטון</button>
+        </div>
+        <div class="ad-duration-row">
+          <label>⏱ זמן הצגה:</label>
+          <input type="number" min="1" max="300" value="${ad.duration||5}" oninput="upAd('${pos}',${i},'duration',+this.value)"/>
+          <span>שניות</span>
+        </div>
       </div>
     </div>
   `).join('');
+}
+
+function toggleAd(pos,i){
+  const details=document.getElementById('adDetails_'+pos+'_'+i);
+  const arrow=document.getElementById('adArrow_'+pos+'_'+i);
+  const isOpen=details.style.display!=='none';
+  details.style.display=isOpen?'none':'block';
+  arrow.style.transform=isOpen?'':'rotate(90deg)';
+}
+
+function updateAdTitle(pos,i,val){
+  const el=document.querySelector('#adCard_'+pos+'_'+i+' strong');
+  if(el) el.textContent=val||'פרסומת '+(i+1);
+}
+
+function filterAdList(pos){
+  const q=document.getElementById('adSearch'+pos).value.trim().toLowerCase();
+  adItems[pos].forEach((ad,i)=>{
+    const card=document.getElementById('adCard_'+pos+'_'+i);
+    if(!card) return;
+    card.style.display=(!q||(ad.text||'').toLowerCase().includes(q))?'':'none';
+  });
 }
 
 function renderAdGallery(pos,adIdx,items){
@@ -623,6 +646,7 @@ function delAdMedia(pos,adIdx,mediaIdx){
 function addAd(pos){
   adItems[pos].push({text:'',link:'',img:'',vid:'',duration:5,gallery:[]});
   renderAdList(pos);
+  toggleAd(pos,adItems[pos].length-1);
 }
 
 function delAd(pos,i){
