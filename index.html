@@ -532,9 +532,17 @@ function parseAPI(rows){
     const accessKey=fk('נגישות')||fk('access')||fk('נגיש');
     if(!dateKey||!hallKey) return;
     let raw=r[dateKey]+'', pd=null;
-    if(raw.includes('/'))pd=new Date(+raw.split('/')[2],+raw.split('/')[1]-1,+raw.split('/')[0]);
-    else if(raw.includes('-'))pd=new Date(raw);
-    else return;
+    if(raw.includes('/')){
+      pd=new Date(+raw.split('/')[2],+raw.split('/')[1]-1,+raw.split('/')[0]);
+    } else if(raw.includes('T')){
+      // ISO datetime from Apps Script (e.g. "2026-06-18T21:00:00.000Z")
+      // Use only the calendar date portion to avoid UTC->local timezone shifting the day
+      const dp=raw.split('T')[0].split('-');
+      pd=new Date(+dp[0],+dp[1]-1,+dp[2]);
+    } else if(raw.includes('-')){
+      const dp=raw.split('-');
+      pd=new Date(+dp[0],+dp[1]-1,+dp[2]);
+    } else return;
     if(!pd||isNaN(pd)) return;
     result.push({
       dateObj:pd, dateKey:fmtKey(pd),
