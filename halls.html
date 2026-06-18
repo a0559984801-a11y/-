@@ -332,7 +332,7 @@ function openModal(i){
   // Custom fields
   if(currentHall.customFields && currentHall.customFields.length){
     currentHall.customFields.filter(f=>f.label && f.value).forEach(f=>{
-      const val=f.type==='link'?`<a href="${f.value}" target="_blank">${f.value}</a>`:f.value;
+      const val=f.type==='link'?`<a href="${f.value}" target="_blank" style="display:inline-block;padding:4px 14px;background:#1a1a2e;color:white;border-radius:5px;text-decoration:none;font-size:0.8rem;font-weight:600;">קישור ↗</a>`:f.value;
       rows.push([f.label,val]);
     });
   }
