@@ -418,7 +418,7 @@ function logVisit(page){
     const device=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?'mobile':'desktop';
     new Image().src=API_URL+'?action=logVisit&page='+encodeURIComponent(page)+'&device='+device+'&t='+Date.now();
   }catch(e){}};
-  const sched=()=>(window.requestIdleCallback||setTimeout)(fire,1);
+  const sched=()=>window.requestIdleCallback?window.requestIdleCallback(fire):setTimeout(fire,1);
   if(document.readyState==='complete') sched();
   else window.addEventListener('load',sched,{once:true});
 }
