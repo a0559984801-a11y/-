@@ -209,16 +209,6 @@ function applyHallOrder(list, settings){
 
 async function loadHalls(){
   try{
-    const cached=sessionStorage.getItem('alldata');
-    if(cached){
-      const bundle=JSON.parse(cached);
-      const cachedHalls=(bundle.halls||[]).filter(h=>h.name);
-      if(cachedHalls.length){
-        halls=applyHallOrder(cachedHalls, bundle.settings||{});
-        renderGrid();
-        return;
-      }
-    }
     const [r1,r2]=await Promise.all([fetch(API_URL+'?action=halls'),fetch(API_URL+'?action=settings')]);
     const rawHalls=(await r1.json()).filter(h=>h.name);
     const settings=r2.ok?await r2.json():{};

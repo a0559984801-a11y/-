@@ -949,28 +949,17 @@ function applyHebrewMonthFilter(){
 }
 
 async function fetchData(){
-  if(sessionStorage.getItem('hd')){sessionStorage.removeItem('hd');sessionStorage.removeItem('ht');}
+  sessionStorage.removeItem('hd');sessionStorage.removeItem('ht');
   try{
-    const CACHE_MS=1*60*1000;
-    const cached=sessionStorage.getItem('alldata'),cachedTime=+sessionStorage.getItem('alltime')||0;
     let availData, settingsData={}, hallsData=[];
-    if(cached&&Date.now()-cachedTime<CACHE_MS){
-      const bundle=JSON.parse(cached);
-      availData=bundle.avail||[];
-      settingsData=bundle.settings||{};
-      hallsData=bundle.halls||[];
-    } else {
-      const [r1,r2,r3]=await Promise.all([
-        fetch(API_URL),
-        fetch(API_URL+'?action=settings'),
-        fetch(API_URL+'?action=halls')
-      ]);
-      availData=r1.ok?await r1.json():[];
-      settingsData=r2.ok?await r2.json():{};
-      hallsData=r3.ok?await r3.json():[];
-      sessionStorage.setItem('alldata',JSON.stringify({avail:availData,settings:settingsData,halls:hallsData}));
-      sessionStorage.setItem('alltime',Date.now().toString());
-    }
+    const [r1,r2,r3]=await Promise.all([
+      fetch(API_URL),
+      fetch(API_URL+'?action=settings'),
+      fetch(API_URL+'?action=halls')
+    ]);
+    availData=r1.ok?await r1.json():[];
+    settingsData=r2.ok?await r2.json():{};
+    hallsData=r3.ok?await r3.json():[];
     window._settings=settingsData;
     window._hallDetails=hallsData;
     allData=parseAPI(availData);
@@ -1003,7 +992,6 @@ function toggleSidebar(){
 
 fetchData();
 logVisit('index');
-setInterval(fetchData,30000);
 const _pageStart=Date.now();
 window.addEventListener('pagehide',function(){
   const sec=Math.round((Date.now()-_pageStart)/1000);
