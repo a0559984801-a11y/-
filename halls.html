@@ -32,18 +32,18 @@ header h1{font-size:1.1rem;font-weight:700;}
 .halls-grid{display:grid;gap:14px;}
 .halls-grid.grid-large{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));}
 .halls-grid.grid-small{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));}
-.halls-grid.list-view{grid-template-columns:1fr;gap:6px;}
-.halls-grid.list-view .hall-card{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:14px 16px;gap:10px;min-height:0;border:none;border-radius:8px;box-shadow:none;position:relative;overflow:hidden;background-size:cover;background-position:center;}
-.halls-grid.list-view .hall-card::before{content:'';position:absolute;top:0;right:0;bottom:0;left:0;background:rgba(255,255,255,0.78);z-index:0;}
-.halls-grid.list-view .hall-card:hover::before{background:rgba(255,255,255,0.68);}
+.halls-grid.list-view{grid-template-columns:1fr;gap:8px;}
+.halls-grid.list-view .hall-card{display:flex;align-items:center;justify-content:space-between;padding:0 18px;min-height:70px;border:none;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.15);position:relative;overflow:hidden;background-size:cover;background-position:center;}
+.halls-grid.list-view .hall-card::before{content:'';position:absolute;top:0;right:0;bottom:0;left:0;background:linear-gradient(90deg,rgba(26,26,46,0.6) 0%,rgba(26,26,46,0.35) 50%,rgba(26,26,46,0.6) 100%);z-index:0;}
+.halls-grid.list-view .hall-card:hover::before{background:linear-gradient(90deg,rgba(26,26,46,0.5) 0%,rgba(26,26,46,0.25) 50%,rgba(26,26,46,0.5) 100%);}
 .halls-grid.list-view .hall-card .list-thumb,.halls-grid.list-view .hall-card .list-thumb-empty{display:none;}
 .halls-grid.list-view .hall-card-info{display:none;}
 .halls-grid.list-view .hall-card h3{display:none;}
 .halls-grid.list-view .hall-card p{display:none;}
 .halls-grid.list-view .hall-card > *{position:relative;z-index:1;}
-.halls-grid.list-view .hall-card .hall-name-text{font-weight:700;font-size:0.95rem;color:#1a1a2e;text-align:right;text-shadow:0 1px 3px rgba(255,255,255,0.8);}
-.halls-grid.list-view .hall-card .list-details-btn{font-size:0.75rem;color:#1a1a2e;background:rgba(232,184,109,0.9);padding:4px 12px;border-radius:5px;white-space:nowrap;text-align:center;font-weight:600;}
-.halls-grid.list-view .hall-card .hall-city-text{font-size:0.85rem;color:#444;text-align:left;text-shadow:0 1px 3px rgba(255,255,255,0.8);font-weight:600;}
+.halls-grid.list-view .hall-card .hall-name-text{font-weight:700;font-size:1rem;color:white;text-align:right;text-shadow:0 1px 4px rgba(0,0,0,0.6);}
+.halls-grid.list-view .hall-card .list-details-btn{font-size:0.78rem;color:#1a1a2e;background:#e8b86d;padding:6px 14px;border-radius:6px;white-space:nowrap;text-align:center;font-weight:700;flex-shrink:0;}
+.halls-grid.list-view .hall-card .hall-city-text{font-size:0.85rem;color:rgba(255,255,255,0.85);text-align:left;font-weight:600;text-shadow:0 1px 3px rgba(0,0,0,0.5);min-width:80px;}
 
 .halls-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;}
 .hall-card{background:white;border-radius:10px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.08);cursor:pointer;transition:box-shadow 0.2s;border:2px solid transparent;}
@@ -110,6 +110,15 @@ header h1{font-size:1.1rem;font-weight:700;}
 .fs-nav-btn:hover{background:rgba(255,255,255,0.4);}
 .fs-nav-btn:disabled{opacity:0.3;cursor:not-allowed;}
 .fs-counter{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.5);color:white;padding:10px 20px;border-radius:20px;font-size:0.9rem;}
+@media(max-width:700px){
+  #btnList{display:none;}
+  .desktop-label{display:none;}
+  .mobile-label{display:inline;}
+}
+@media(min-width:701px){
+  .desktop-label{display:inline;}
+  .mobile-label{display:none;}
+}
 </style>
 </head>
 <body>
@@ -123,10 +132,10 @@ header h1{font-size:1.1rem;font-weight:700;}
   </div>
   
   <!-- View Toggle -->
-  <div class="view-controls">
-    <button class="view-btn" id="btnList" onclick="setView('list')">📋 רשימה</button>
-    <button class="view-btn active" id="btnGridLarge" onclick="setView('grid-large')">⊞ רשת גדולה</button>
-    <button class="view-btn" id="btnGridSmall" onclick="setView('grid-small')">⊟ רשת קטנה</button>
+  <div class="view-controls" id="viewControls">
+    <button class="view-btn" id="btnList" onclick="setView('list-view')">📋 רשימה</button>
+    <button class="view-btn active" id="btnGridLarge" onclick="setView('grid-large')"><span class="desktop-label">⊞ רשת גדולה</span><span class="mobile-label">⊞ רשימה</span></button>
+    <button class="view-btn" id="btnGridSmall" onclick="setView('grid-small')"><span class="desktop-label">⊟ רשת קטנה</span><span class="mobile-label">⊟ רשת</span></button>
   </div>
   
   <div class="halls-grid" id="hallsGrid">
@@ -169,12 +178,20 @@ header h1{font-size:1.1rem;font-weight:700;}
 
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbziYMBlMR3C_QbmPmDESOkYBWPSGwJ4f2sja-Os4BKj7Xm5KLgdNkhEmY4w3_5Lq_RtnA/exec';
+const DEFAULT_IMG='https://res.cloudinary.com/df8cqjeu6/image/upload/f_auto,q_auto/Gemini_Generated_Image_lhtutylhtutylhtu_efxa9a';
 // Log visit to Google Sheets (fire and forget, never blocks the page)
 function logVisit(page){
   try{
     const device=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?'mobile':'desktop';
     const img=new Image();
     img.src=API_URL+'?action=logVisit&page='+encodeURIComponent(page)+'&device='+device+'&t='+Date.now();
+  }catch(e){}
+}
+function logHallView(name){
+  try{
+    const device=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?'mobile':'desktop';
+    const img=new Image();
+    img.src=API_URL+'?action=logHallView&hall='+encodeURIComponent(name)+'&device='+device+'&t='+Date.now();
   }catch(e){}
 }
 let halls=[],currentHall=null,currentImageIndex=0,currentView='grid-large';
@@ -230,7 +247,7 @@ function renderGrid(list){
     const isListView=currentView==='list-view';
     const isGrid=currentView==='grid-large'||currentView==='grid-small';
     return `
-    <div class="hall-card" data-index="${hallIndex}" data-name="${h.name}" data-city="${h.city||''}"${(isListView||isGrid)&&h.img?` style="background-image:url('${h.img}')"`:''}>
+    <div class="hall-card" data-index="${hallIndex}" data-name="${h.name}" data-city="${h.city||''}"${(isListView||isGrid)?` style="background-image:url('${h.img||DEFAULT_IMG}')"`:''}>
       ${!isListView&&h.img?`<img src="${h.img}" alt="${h.name}"/>`:''}
       ${isListView?`<span class="hall-name-text">${h.name}</span>`:''}
       <div${isListView?' class="hall-card-info"':''}>
@@ -266,14 +283,15 @@ function openModal(i){
   if(i<0 || !halls[i]) return;
   currentHall=halls[i];
   currentImageIndex=0;
+  logHallView(currentHall.name);
 
   document.getElementById('modalTitle').textContent=currentHall.name;
 
-  // Gallery - handle images as array or pipe-separated string
+  // Gallery - combine main img + images array
   let imgArr=currentHall.images;
   if(typeof imgArr==='string') imgArr=imgArr.split('|');
   if(!Array.isArray(imgArr)) imgArr=[];
-  const images=imgArr.filter(img=>img && (''+img).trim());
+  const images=[currentHall.img,...imgArr].filter(img=>img && (''+img).trim());
   const galleryContainer=document.getElementById('galleryContainer');
   if(images.length){
     document.getElementById('galleryImage').src=images[0];

@@ -103,6 +103,12 @@ textarea{resize:vertical;min-height:70px;}
 .bar-fill{background:linear-gradient(90deg,#e8b86d,#c49a3c);height:100%;border-radius:4px;min-width:2px;transition:width 0.4s;}
 .bar-val{min-width:32px;text-align:left;color:#1a1a2e;font-weight:600;flex-shrink:0;}
 @media(min-width:600px){.stats-cards{grid-template-columns:repeat(4,1fr);}}
+#hallViewsTbl th,#hallViewsTbl td{padding:6px 8px;border:1px solid #ede8e0;text-align:center;white-space:nowrap;}
+#hallViewsTbl thead tr{background:#1a1a2e;color:white;}
+#hallViewsTbl th.hall-col{text-align:right;min-width:100px;position:sticky;right:0;background:#1a1a2e;}
+#hallViewsTbl td.hall-col{text-align:right;font-weight:600;color:#1a1a2e;background:#fafaf7;position:sticky;right:0;border-right:none;}
+#hallViewsTbl td.has-views{background:#d4f5e4;color:#1a7a45;font-weight:700;}
+#hallViewsTbl td.total-col{background:#f0ede8;font-weight:700;color:#1a1a2e;}
 </style>
 </head>
 <body>
@@ -172,6 +178,16 @@ textarea{resize:vertical;min-height:70px;}
         <div class="card">
           <h3 style="font-size:0.95rem;margin-bottom:12px;color:#1a1a2e;">📱 לפי מכשיר ועמוד</h3>
           <div id="statsBreakdown" style="font-size:0.85rem;color:#444;line-height:1.9;"></div>
+        </div>
+        <div class="card" style="margin-top:14px;">
+          <h3 style="font-size:0.95rem;margin-bottom:12px;color:#1a1a2e;">🏛 צפיות בחלון מידע לפי אולם (14 ימים אחרונים)</h3>
+          <div id="hallViewsLoading" style="font-size:0.82rem;color:#aaa;">טוען...</div>
+          <div id="hallViewsTable" style="display:none;overflow-x:auto;">
+            <table id="hallViewsTbl" style="border-collapse:collapse;font-size:0.75rem;width:100%;min-width:400px;">
+              <thead id="hallViewsHead"></thead>
+              <tbody id="hallViewsBody"></tbody>
+            </table>
+          </div>
         </div>
         <button class="btn-save" onclick="loadStats()" style="background:#1a1a2e;">🔄 רענן נתונים</button>
         <p style="font-size:0.75rem;color:#aaa;margin-top:14px;text-align:center;">
@@ -351,6 +367,50 @@ async function loadStats(){
   }catch(err){
     loading.textContent='⚠️ שגיאה בטעינת הנתונים. ודא שיצרת לשונית "ביקורים" בגיליון ועדכנת את ה-Apps Script.';
   }
+  loadHallViewStats();
+}
+
+async function loadHallViewStats(){
+  const loading=document.getElementById('hallViewsLoading');
+  const wrap=document.getElementById('hallViewsTable');
+  loading.style.display='block';
+  wrap.style.display='none';
+  try{
+    const res=await fetch(API_URL+'?action=hallStats&t='+Date.now());
+    const data=await res.json();
+    // data = { hallName: { "2025-01-01": 3, ... }, ... }
+    const days=[];
+    for(let i=13;i>=0;i--){
+      const d=new Date();d.setDate(d.getDate()-i);
+      days.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'));
+    }
+    const dayLabels=days.map(d=>{const p=d.split('-');return p[2]+'/'+p[1];});
+    const hallNames=Object.keys(data).sort();
+    if(!hallNames.length){loading.textContent='אין נתונים עדיין';return;}
+
+    let head='<tr><th class="hall-col">אולם</th>';
+    dayLabels.forEach(l=>{head+=`<th>${l}</th>`;});
+    head+='<th class="total-col">סה״כ</th></tr>';
+    document.getElementById('hallViewsHead').innerHTML=head;
+
+    let body='';
+    hallNames.forEach(name=>{
+      const row=data[name]||{};
+      const total=Object.values(row).reduce((a,b)=>a+b,0);
+      body+=`<tr><td class="hall-col">${name}</td>`;
+      days.forEach(d=>{
+        const v=row[d]||0;
+        body+=`<td class="${v>0?'has-views':''}">${v||''}</td>`;
+      });
+      body+=`<td class="total-col">${total}</td></tr>`;
+    });
+    document.getElementById('hallViewsBody').innerHTML=body;
+
+    loading.style.display='none';
+    wrap.style.display='block';
+  }catch(e){
+    loading.textContent='⚠️ שגיאה בטעינת נתוני צפיות אולמות';
+  }
 }
 
 function renderBarChart(containerId,data){
@@ -514,18 +574,25 @@ function renderAdGallery(pos,adIdx,items){
   if(!items.length) return '<p style="font-size:0.75rem;color:#bbb;margin-bottom:6px">אין תמונות/סרטונים עדיין</p>';
   return items.map((item,ii)=>`
     <div style="border:1px solid #eee;border-radius:6px;padding:8px;margin-bottom:8px;background:#fafafa">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <span style="font-size:0.72rem;color:#999;font-weight:700">תמונה/סרטון ${ii+1}</span>
         <button onclick="delAdMedia('${pos}',${adIdx},${ii})" style="background:#fde8e8;color:#a32020;border:none;border-radius:5px;padding:3px 8px;cursor:pointer;font-size:0.75rem">מחק</button>
       </div>
-      <label style="font-size:0.7rem;color:#666;display:block;margin-bottom:2px">כתובת URL של התמונה/סרטון:</label>
-      <input type="url" value="${escHtml(item.url||'')}" placeholder="https://res.cloudinary.com/..." style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:5px;font-family:Assistant;font-size:0.82rem;margin-bottom:5px" oninput="upAdMedia('${pos}',${adIdx},${ii},'url',this.value)"/>
-      <div style="display:flex;gap:6px;align-items:center">
+      <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">
         <select onchange="upAdMedia('${pos}',${adIdx},${ii},'type',this.value)" style="padding:6px 8px;border:1px solid #ddd;border-radius:5px;font-family:Assistant;font-size:0.82rem;background:white;flex:1">
           <option value="image" ${item.type==='image'?'selected':''}>📸 תמונה</option>
           <option value="video" ${item.type==='video'?'selected':''}>🎬 סרטון</option>
         </select>
-        ${item.url?`<img src="${escHtml(item.url)}" style="max-width:50px;max-height:50px;border-radius:5px;object-fit:cover"/>`:''} 
+      </div>
+      <label style="font-size:0.7rem;color:#666;display:block;margin-bottom:2px">💻 מחשב:</label>
+      <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
+        <input type="url" value="${escHtml(item.url||'')}" placeholder="https://res.cloudinary.com/..." style="flex:1;padding:6px 8px;border:1px solid #ddd;border-radius:5px;font-family:Assistant;font-size:0.82rem" oninput="upAdMedia('${pos}',${adIdx},${ii},'url',this.value)"/>
+        ${item.url?`<img src="${escHtml(item.url)}" style="max-width:44px;max-height:44px;border-radius:5px;object-fit:cover;flex-shrink:0"/>`:''}
+      </div>
+      <label style="font-size:0.7rem;color:#666;display:block;margin-bottom:2px">📱 טלפון:</label>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input type="url" value="${escHtml(item.urlMobile||'')}" placeholder="https://res.cloudinary.com/... (אופציונלי)" style="flex:1;padding:6px 8px;border:1px solid #ddd;border-radius:5px;font-family:Assistant;font-size:0.82rem" oninput="upAdMedia('${pos}',${adIdx},${ii},'urlMobile',this.value)"/>
+        ${item.urlMobile?`<img src="${escHtml(item.urlMobile)}" style="max-width:44px;max-height:44px;border-radius:5px;object-fit:cover;flex-shrink:0"/>`:''}
       </div>
     </div>
   `).join('');
@@ -533,7 +600,7 @@ function renderAdGallery(pos,adIdx,items){
 
 function addAdMedia(pos,adIdx){
   if(!adItems[pos][adIdx].gallery) adItems[pos][adIdx].gallery=[];
-  adItems[pos][adIdx].gallery.push({url:'',type:'image'});
+  adItems[pos][adIdx].gallery.push({url:'',urlMobile:'',type:'image'});
   document.getElementById('adGallery_'+pos+'_'+adIdx).innerHTML=renderAdGallery(pos,adIdx,adItems[pos][adIdx].gallery);
 }
 
