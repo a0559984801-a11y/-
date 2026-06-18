@@ -3,18 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- Google Analytics -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://script.google.com">
+<link rel="dns-prefetch" href="https://www.googletagmanager.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-H8MXTNM0HY"></script>
-<script>
-window.dataLayer=window.dataLayer||[];
-function gtag(){dataLayer.push(arguments);}
-gtag('js',new Date());
-gtag('config','G-H8MXTNM0HY');
-</script>
-
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-H8MXTNM0HY');</script>
 <title>מידע על אולמות</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Rubik',sans-serif;background:#f7f5f0;min-height:100vh;}
 header{background:#1a1a2e;color:white;padding:12px 20px;display:flex;align-items:center;gap:16px;}
@@ -29,7 +26,6 @@ header h1{font-size:1.1rem;font-weight:700;}
 .view-btn.active{background:#1a1a2e;color:white;border-color:#1a1a2e;}
 
 /* Grid Layouts */
-.halls-grid{display:grid;gap:14px;}
 .halls-grid.grid-large{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));}
 .halls-grid.grid-small{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));}
 .halls-grid.list-view{grid-template-columns:1fr;gap:8px;}
@@ -215,7 +211,6 @@ async function loadHalls(){
     halls=applyHallOrder(rawHalls, settings);
     renderGrid();
   }catch(e){
-    console.error('loadHalls error:',e);
     document.getElementById('hallsGrid').innerHTML='<div class="empty-state">שגיאה בטעינה. נסה לרענן.</div>';
   }
 }
@@ -251,7 +246,7 @@ function renderGrid(list){
     const isGrid=currentView==='grid-large'||currentView==='grid-small';
     return `
     <div class="hall-card" data-index="${hallIndex}" data-name="${h.name}" data-city="${h.city||''}"${(isListView||isGrid)?` style="background-image:url('${h.img||DEFAULT_IMG}')"`:''}>
-      ${!isListView&&h.img?`<img src="${h.img}" alt="${h.name}"/>`:''}
+      ${!isListView&&h.img?`<img src="${h.img}" alt="${h.name}" loading="lazy" decoding="async"/>`:''}
       ${isListView?`<span class="hall-name-text">${h.name}</span>`:''}
       <div${isListView?' class="hall-card-info"':''}>
         ${!isListView?`<h3>${h.name}</h3>`:''}

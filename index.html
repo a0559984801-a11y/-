@@ -3,18 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- Google Analytics -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://script.google.com">
+<link rel="dns-prefetch" href="https://www.googletagmanager.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-H8MXTNM0HY"></script>
-<script>
-window.dataLayer=window.dataLayer||[];
-function gtag(){dataLayer.push(arguments);}
-gtag('js',new Date());
-gtag('config','G-H8MXTNM0HY');
-</script>
-
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-H8MXTNM0HY');</script>
 <title>זמינות אולמות חתונה</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Rubik',sans-serif;background:#f7f5f0;color:#1a1a1a;min-height:100vh;display:flex;flex-direction:column;font-weight:400;}
 body.has-bottom-ad{padding-bottom:2.5cm;}
@@ -627,7 +624,8 @@ function toggleDD(listId,btnId){
   document.getElementById(btnId).classList.toggle('open');
 }
 
-document.addEventListener('click',e=>{if(!e.target.closest('.dropdown-check'))['listCity','listKashrut','listHall','listAccess'].forEach(id=>{document.getElementById(id)&&document.getElementById(id).classList.remove('open');const b=document.getElementById(id.replace('list','btn'));if(b)b.classList.remove('open');});});
+const _ddIds=[['listCity','btnCity'],['listKashrut','btnKashrut'],['listHall','btnHall'],['listAccess','btnAccess']];
+document.addEventListener('click',e=>{if(!e.target.closest('.dropdown-check'))_ddIds.forEach(([l,b])=>{const le=document.getElementById(l),be=document.getElementById(b);if(le)le.classList.remove('open');if(be)be.classList.remove('open');});},{passive:true});
 
 function getFiltered(){
   const fv=document.getElementById('filterFrom').value,tv=document.getElementById('filterTo').value;
@@ -708,34 +706,27 @@ function clickDate(key){
 }
 
 // ===== DATE TOOLTIP =====
+const _dateTip=document.getElementById('dateTooltip');
+const _hallTip=document.getElementById('hallTooltip');
 let dateTooltipTimer=null, lastMouseEvent=null;
 
 function dateHoverStart(e){
   lastMouseEvent=e;
   clearTimeout(dateTooltipTimer);
-  dateTooltipTimer=setTimeout(()=>{
-    const tip=document.getElementById('dateTooltip');
-    tip.style.display='block';
-    positionTooltip(lastMouseEvent);
-  },500);
+  dateTooltipTimer=setTimeout(()=>{_dateTip.style.display='block';positionTooltip(lastMouseEvent);},500);
 }
 function dateHoverMove(e){
   lastMouseEvent=e;
-  const tip=document.getElementById('dateTooltip');
-  if(tip.style.display==='block') positionTooltip(e);
+  if(_dateTip.style.display==='block') positionTooltip(e);
 }
 function dateHoverEnd(){
   clearTimeout(dateTooltipTimer);
-  document.getElementById('dateTooltip').style.display='none';
+  _dateTip.style.display='none';
 }
 function positionTooltip(e){
-  const tip=document.getElementById('dateTooltip');
-  let x=e.clientX-tip.offsetWidth+20;
-  let y=e.clientY-tip.offsetHeight-12;
-  if(x<8) x=8;
-  if(y<8) y=e.clientY+20;
-  tip.style.left=x+'px';
-  tip.style.top=y+'px';
+  let x=e.clientX-_dateTip.offsetWidth+20,y=e.clientY-_dateTip.offsetHeight-12;
+  if(x<8)x=8;if(y<8)y=e.clientY+20;
+  _dateTip.style.left=x+'px';_dateTip.style.top=y+'px';
 }
 
 // ===== HALL HOVER PREVIEW =====
@@ -745,24 +736,18 @@ let lastHallMouseEvent=null;
 function hallHoverStart(name,e){
   lastHallMouseEvent=e;
   clearTimeout(hallHoverTimer);
-  hallHoverTimer=setTimeout(()=>{
-    const tip=document.getElementById('hallTooltip');
-    tip.style.display='block';
-    positionHallTooltip(lastHallMouseEvent);
-  },500);
+  hallHoverTimer=setTimeout(()=>{_hallTip.style.display='block';positionHallTooltip(lastHallMouseEvent);},500);
 }
 function hallHoverMove(e){
   lastHallMouseEvent=e;
-  const tip=document.getElementById('hallTooltip');
-  if(tip.style.display==='block') positionHallTooltip(e);
+  if(_hallTip.style.display==='block') positionHallTooltip(e);
 }
 function hallHoverEnd(){
   clearTimeout(hallHoverTimer);
-  document.getElementById('hallTooltip').style.display='none';
+  _hallTip.style.display='none';
 }
 function positionHallTooltip(e){
-  const tip=document.getElementById('hallTooltip');
-  let x=e.clientX-tip.offsetWidth/2;
+  let x=e.clientX-_hallTip.offsetWidth/2;
   let y=e.clientY-tip.offsetHeight-12;
   if(x<8) x=8;
   if(y<8) y=e.clientY+20;
