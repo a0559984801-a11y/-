@@ -153,6 +153,7 @@ textarea{resize:vertical;min-height:70px;}
       <div class="card">
         <p style="font-size:0.82rem;color:#666;margin-bottom:12px">הוסף פרטים לכל אולם. נתונים אלו משמשים לסינון באתר וגם בעמוד "מידע על אולמות".</p>
         <button class="btn-save" onclick="addHall()" style="margin-top:0;margin-bottom:14px">+ הוסף אולם</button>
+        <input type="text" id="hallSearch" placeholder="🔍 חפש לפי שם אולם..." oninput="filterHallsList()" style="width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid #ddd;border-radius:7px;font-family:Assistant;font-size:0.9rem;margin-bottom:12px"/>
         <div id="hallsList"></div>
         <button class="btn-save" id="saveHallsBtn" onclick="saveHalls()">💾 שמור הכל לשרת</button>
         <div class="ok" id="hallsOk">✓ נשמר לשרת! כולם יראו את השינוי</div>
@@ -406,7 +407,7 @@ async function loadHallViewStats(){
       body+=`<tr><td class="hall-col">${name}</td>`;
       days.forEach(d=>{
         const v=row[d]||0;
-        body+=`<td class="${v>0?'has-views':''}">${v||''}</td>`;
+        body+=`<td class="${v>0?'has-views':''}">  ${v||''}</td>`;
       });
       body+=`<td class="total-col">${total}</td></tr>`;
     });
@@ -651,52 +652,74 @@ async function saveAds(){
 function renderHalls(){
   const list=document.getElementById('hallsList');
   list.innerHTML=halls.map((h,i)=>`
-    <div style="border:1px solid #eee;border-radius:8px;padding:12px;margin-bottom:10px;background:#fafafa">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <strong style="font-size:0.9rem;color:#1a1a2e">${h.name||'אולם '+(i+1)}</strong>
-        <button onclick="rmHall(${i})" style="background:#fde8e8;color:#a32020;border:none;border-radius:5px;padding:3px 10px;cursor:pointer;font-size:0.78rem">מחק</button>
-      </div>
-      <label style="margin-top:0">שם האולם</label>
-      <input type="text" value="${escHtml(h.name||'')}" onchange="upHall(${i},'name',this.value)"/>
-      <label>עיר</label>
-      <input type="text" value="${escHtml(h.city||'')}" onchange="upHall(${i},'city',this.value)"/>
-      <label>רחוב</label>
-      <input type="text" value="${escHtml(h.street||'')}" onchange="upHall(${i},'street',this.value)"/>
-      <label>טלפון</label>
-      <input type="text" value="${escHtml(h.phone||'')}" placeholder="050-0000000" onchange="upHall(${i},'phone',this.value)"/>
-      <label>כשרות</label>
-      <input type="text" value="${escHtml(h.kashrut||'')}" onchange="upHall(${i},'kashrut',this.value)"/>
-      <label>נגישות</label>
-      <select onchange="upHall(${i},'access',this.value)">
-        <option value="">-- בחר --</option>
-        <option value="כן" ${h.access==='כן'?'selected':''}>כן</option>
-        <option value="לא" ${h.access==='לא'?'selected':''}>לא</option>
-      </select>
-      <label>מספר מקומות</label>
-      <input type="number" value="${escHtml(String(h.seats||''))}" onchange="upHall(${i},'seats',this.value)"/>
-      <label>תיאור (לעמוד מידע)</label>
-      <textarea onchange="upHall(${i},'desc',this.value)">${escHtml(h.desc||'')}</textarea>
-      <label>תמונה ראשונה (קישור Cloudinary)</label>
-      <input type="url" value="${escHtml(h.img||'')}" placeholder="https://res.cloudinary.com/..." onchange="upHall(${i},'img',this.value)"/>
-      ${h.img?`<img src="${escHtml(h.img)}" style="max-width:100%;max-height:80px;border-radius:6px;margin:4px 0 6px"/>`:''} 
-
-      <!-- Multiple Images Gallery -->
-      <div style="margin-top:12px;border-top:1px dashed #ddd;padding-top:10px">
-        <div style="font-size:0.78rem;font-weight:700;color:#555;margin-bottom:8px">🖼️ גלריית תמונות נוספות</div>
-        <div id="imagesList_${i}">
-          ${renderImagesList(i,h.images||[])}
+    <div id="hallCard_${i}" style="border:1px solid #eee;border-radius:8px;margin-bottom:10px;background:#fafafa;overflow:hidden">
+      <div onclick="toggleHall(${i})" style="display:flex;justify-content:space-between;align-items:center;padding:12px;cursor:pointer;user-select:none">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span id="hallArrow_${i}" style="font-size:0.85rem;transition:transform 0.2s;display:inline-block">▶</span>
+          <strong style="font-size:0.9rem;color:#1a1a2e">${h.name||'אולם '+(i+1)}</strong>
         </div>
-        <button class="btn-add-field" onclick="addImage(${i})">+ הוסף תמונה</button>
+        <button onclick="event.stopPropagation();rmHall(${i})" style="background:#fde8e8;color:#a32020;border:none;border-radius:5px;padding:3px 10px;cursor:pointer;font-size:0.78rem">מחק</button>
       </div>
+      <div id="hallDetails_${i}" style="display:none;padding:0 12px 12px">
+        <label style="margin-top:8px">שם האולם</label>
+        <input type="text" value="${escHtml(h.name||'')}" onchange="upHall(${i},'name',this.value)"/>
+        <label>עיר</label>
+        <input type="text" value="${escHtml(h.city||'')}" onchange="upHall(${i},'city',this.value)"/>
+        <label>רחוב</label>
+        <input type="text" value="${escHtml(h.street||'')}" onchange="upHall(${i},'street',this.value)"/>
+        <label>טלפון</label>
+        <input type="text" value="${escHtml(h.phone||'')}" placeholder="050-0000000" onchange="upHall(${i},'phone',this.value)"/>
+        <label>כשרות</label>
+        <input type="text" value="${escHtml(h.kashrut||'')}" onchange="upHall(${i},'kashrut',this.value)"/>
+        <label>נגישות</label>
+        <select onchange="upHall(${i},'access',this.value)">
+          <option value="">-- בחר --</option>
+          <option value="כן" ${h.access==='כן'?'selected':''}>כן</option>
+          <option value="לא" ${h.access==='לא'?'selected':''}>לא</option>
+        </select>
+        <label>מספר מקומות</label>
+        <input type="number" value="${escHtml(String(h.seats||''))}" onchange="upHall(${i},'seats',this.value)"/>
+        <label>תיאור (לעמוד מידע)</label>
+        <textarea onchange="upHall(${i},'desc',this.value)">${escHtml(h.desc||'')}</textarea>
+        <label>תמונה ראשונה (קישור Cloudinary)</label>
+        <input type="url" value="${escHtml(h.img||'')}" placeholder="https://res.cloudinary.com/..." onchange="upHall(${i},'img',this.value)"/>
+        ${h.img?`<img src="${escHtml(h.img)}" style="max-width:100%;max-height:80px;border-radius:6px;margin:4px 0 6px"/>`:''}
 
-      <!-- Custom fields -->
-      <div style="margin-top:12px;border-top:1px dashed #ddd;padding-top:10px">
-        <div style="font-size:0.75rem;font-weight:700;color:#555;margin-bottom:8px">📋 שדות נוספים (מוצגים בעמוד האולמות)</div>
-        <div id="customFields_${i}">${renderCustomFields(i,h.customFields||[])}</div>
-        <button class="btn-add-field" onclick="addCustomField(${i})">+ הוסף שדה</button>
+        <!-- Multiple Images Gallery -->
+        <div style="margin-top:12px;border-top:1px dashed #ddd;padding-top:10px">
+          <div style="font-size:0.78rem;font-weight:700;color:#555;margin-bottom:8px">🖼️ גלריית תמונות נוספות</div>
+          <div id="imagesList_${i}">
+            ${renderImagesList(i,h.images||[])}
+          </div>
+          <button class="btn-add-field" onclick="addImage(${i})">+ הוסף תמונה</button>
+        </div>
+
+        <!-- Custom fields -->
+        <div style="margin-top:12px;border-top:1px dashed #ddd;padding-top:10px">
+          <div style="font-size:0.75rem;font-weight:700;color:#555;margin-bottom:8px">📋 שדות נוספים (מוצגים בעמוד האולמות)</div>
+          <div id="customFields_${i}">${renderCustomFields(i,h.customFields||[])}</div>
+          <button class="btn-add-field" onclick="addCustomField(${i})">+ הוסף שדה</button>
+        </div>
       </div>
     </div>
   `).join('');
+}
+
+function toggleHall(i){
+  const details=document.getElementById('hallDetails_'+i);
+  const arrow=document.getElementById('hallArrow_'+i);
+  const isOpen=details.style.display!=='none';
+  details.style.display=isOpen?'none':'block';
+  arrow.style.transform=isOpen?'':'rotate(90deg)';
+}
+
+function filterHallsList(){
+  const q=document.getElementById('hallSearch').value.trim().toLowerCase();
+  halls.forEach((h,i)=>{
+    const card=document.getElementById('hallCard_'+i);
+    if(!card)return;
+    card.style.display=(!q||(h.name||'').toLowerCase().includes(q))?'':'none';
+  });
 }
 
 function renderCustomFields(hallIdx, fields){
@@ -766,9 +789,9 @@ function delImage(hallIdx,imgIdx){
   document.getElementById('imagesList_'+hallIdx).innerHTML=renderImagesList(hallIdx,halls[hallIdx].images);
 }
 
-function addHall(){halls.push({name:'',city:'',street:'',phone:'',kashrut:'',access:'',seats:'',desc:'',img:'',vid:'',links:[],images:[],customFields:[]});renderHalls();}
+function addHall(){halls.push({name:'',city:'',street:'',phone:'',kashrut:'',access:'',seats:'',desc:'',img:'',vid:'',links:[],images:[],customFields:[]});renderHalls();toggleHall(halls.length-1);}
 function rmHall(i){if(!confirm('למחוק?'))return;halls.splice(i,1);renderHalls();}
-function upHall(i,f,v){halls[i][f]=v;}
+function upHall(i,f,v){halls[i][f]=v;if(f==='name'){const el=document.querySelector('#hallCard_'+i+' strong');if(el)el.textContent=v||'אולם '+(i+1);}}
 
 
 async function saveHalls(){
