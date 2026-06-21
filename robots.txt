@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+
+Sitemap: https://a0559984801-a11y.github.io/-/sitemap.xml
