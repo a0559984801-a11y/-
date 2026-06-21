@@ -213,7 +213,7 @@ th.hall-name-th:hover{background:#2a2a4e;}
 /* ===== MOBILE ===== */
 @media(max-width:700px){
   .main-layout{flex-direction:column;}
-  .ad-sidebar{display:none;}
+  #adSidebar{display:none !important;}
   .legend{display:none;}
   .table-area{height:calc(100vh - 56px);}
   body.has-bottom-ad .table-area{height:calc(100vh - 56px - 2.5cm);}
@@ -222,6 +222,15 @@ th.hall-name-th:hover{background:#2a2a4e;}
   #siteHeader{justify-content:space-evenly;padding:8px 6px;}
   .header-right,.header-left{gap:0;}
   .btn-halls,.btn-contact,.hamburger-btn{font-size:0.72rem;padding:6px 8px;}
+  #adBottom{height:min(2.5cm,15vh);}
+  #adBottomContent img,#adBottomContent video{object-fit:contain;}
+  body.has-bottom-ad{padding-bottom:min(2.5cm,15vh);}
+  body.has-bottom-ad .sidebar{bottom:min(2.5cm,15vh);}
+  body.has-bottom-ad .table-area{height:calc(100vh - 56px - min(2.5cm,15vh));}
+  body.has-bottom-ad .table-scroll{padding-bottom:min(2.5cm,15vh);}
+  body.has-bottom-ad .calendar-view{padding-bottom:min(2.5cm,15vh);}
+  .ad-bottom-spacer{height:min(2.5cm,15vh);}
+  #adSidebar{height:calc(100vh - 56px - min(2.5cm,15vh));}
 }
 </style>
 </head>
