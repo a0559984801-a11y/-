@@ -103,7 +103,8 @@ body.has-bottom-ad .sidebar{bottom:2.5cm;}
 .btn-admin:hover{background:#e8e8e8;}
 
 /* AD SIDEBAR */
-#adSidebar{width:130px;background:#e8e4dc;display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:#999;flex-shrink:0;border-right:1px solid #d5d0c8;position:sticky;top:56px;height:calc(100vh - 56px - 2.5cm);align-self:flex-start;overflow:hidden;}
+#adSidebar{width:130px;background:#e8e4dc;display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:#999;flex-shrink:0;border-right:1px solid #d5d0c8;position:sticky;top:56px;height:calc(100vh - 56px);align-self:flex-start;overflow:hidden;}
+body.has-bottom-ad #adSidebar{height:calc(100vh - 56px - 2.5cm);}
 #adSidebar img,#adSidebar video{width:100%;height:100%;object-fit:cover;}
 
 /* Table area */
@@ -230,7 +231,7 @@ th.hall-name-th:hover{background:#2a2a4e;}
   body.has-bottom-ad .table-scroll{padding-bottom:min(2.5cm,15vh);}
   body.has-bottom-ad .calendar-view{padding-bottom:min(2.5cm,15vh);}
   .ad-bottom-spacer{height:min(2.5cm,15vh);}
-  #adSidebar{height:calc(100vh - 56px - min(2.5cm,15vh));}
+  body.has-bottom-ad #adSidebar{height:calc(100vh - 56px - min(2.5cm,15vh));}
 }
 </style>
 </head>
