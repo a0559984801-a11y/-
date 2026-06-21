@@ -1066,10 +1066,11 @@ async function fetchData(){
   }catch(e){}
   // 2) Refresh from network — in background if cache already rendered
   try{
+    const _cb='_cb='+Date.now(); // cache-buster so the browser never serves a stale response
     const [r1,r2,r3]=await Promise.all([
-      fetch(API_URL),
-      fetch(API_URL+'?action=settings'),
-      fetch(API_URL+'?action=halls')
+      fetch(API_URL+'?'+_cb,{cache:'no-store'}),
+      fetch(API_URL+'?action=settings&'+_cb,{cache:'no-store'}),
+      fetch(API_URL+'?action=halls&'+_cb,{cache:'no-store'})
     ]);
     const availData=trimAvail(r1.ok?await r1.json():[]);
     const settingsData=r2.ok?await r2.json():{};
@@ -1100,6 +1101,7 @@ function toggleSidebar(){
 }
 
 fetchData();
+setInterval(fetchData,60000); // רענון אוטומטי כל דקה, כל עוד הדף פתוח
 logVisit('index');
 const _pageStart=Date.now();
 window.addEventListener('pagehide',function(){
