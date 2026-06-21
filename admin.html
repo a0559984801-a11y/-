@@ -223,12 +223,10 @@ textarea{resize:vertical;min-height:70px;}
         <input type="text" id="siteName"/>
         <label>תת-כותרת על השער</label>
         <input type="text" id="heroSubtitle" placeholder="בחרו את האולם המושלם לאירוע שלכם"/>
-        <label>תמונת שער — קישור Cloudinary</label>
-        <p style="font-size:0.72rem;color:#999;margin-bottom:6px">התמונה תוצג כשער מרשים מתחת לסרגל הניווט עם הכיתוב מעליה</p>
-        <input type="url" id="logoUrl" placeholder="https://res.cloudinary.com/..."/>
-        <button type="button" onclick="previewUrl('logoUrl','logoPreview')" style="padding:6px 14px;background:#eee;border:none;border-radius:6px;cursor:pointer;font-family:Assistant;font-size:0.82rem;margin-bottom:8px;">תצוגה מקדימה</button>
-        <img id="logoPreview" class="preview-img"/>
-        <p style="font-size:0.72rem;color:#999;margin-top:4px">להעלאת תמונה: <a href="https://cloudinary.com" target="_blank">cloudinary.com</a> ← העלה תמונה ← העתק URL אופטימלי</p>
+        <label>תמונות שער — סליידשואו (עד 10 תמונות)</label>
+        <p style="font-size:0.72rem;color:#999;margin-bottom:10px">התמונות יחליפו זו את זו בלופ אינסופי. להעלאת תמונה: <a href="https://cloudinary.com" target="_blank">cloudinary.com</a> ← העלה ← העתק URL</p>
+        <div id="logoSlidesList"></div>
+        <button type="button" onclick="addLogoSlide()" id="addSlideBtn" style="padding:7px 16px;background:#e8f4e8;border:1px solid #b2d8b2;border-radius:7px;cursor:pointer;font-family:Assistant;font-size:0.85rem;color:#2a7a2a;margin-top:4px;">+ הוסף תמונה</button>
         <label>צבע רקע סרגל ניווט</label>
         <input type="color" id="headerColor" value="#1a1a2e"/>
         <button class="btn-save" onclick="saveLogo()">💾 שמור לשרת</button>
@@ -367,7 +365,7 @@ textarea{resize:vertical;min-height:70px;}
 </div><!-- end adminContent -->
 
 <script>
-const API_URL='https://script.google.com/macros/s/AKfycbziYMBlMR3C_QbmPmDESOkYBWPSGwJ4f2sja-Os4BKj7Xm5KLgdNkhEmY4w3_5Lq_RtnA/exec';
+const API_URL='https://script.google.com/macros/s/AKfycbylfK2AoCFcDCpvRWCS6DB3ciPL0VvzsrlNhtmhOxIuxW7v5LmI6Sic5vTvY37gae3mWQ/exec';
 
 // ===== Statistics / נתוני גלישה =====
 async function loadStats(){
@@ -482,7 +480,7 @@ function renderBarChart(containerId,data){
 let settings={}, halls=[], hallOrder=[], hiddenDays=[];
 let adState={Top:true,Bottom:true,Side:true};
 let adItems={Top:[],Bottom:[],Side:[]};
-let logoData='';
+let logoSlides=[];
 
 const _panels=document.querySelectorAll('.panel');
 const _navBtns=document.querySelectorAll('.nav-btn');
@@ -496,17 +494,6 @@ function show(name,e){
   if(name==='hidden-dates') renderHideCalendar();
 }
 function showOk(id){const el=document.getElementById(id);el.style.display='block';setTimeout(()=>el.style.display='none',2500);}
-
-function prevImg(input,prevId,dataVar){
-  const file=input.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    const p=document.getElementById(prevId);
-    p.src=e.target.result;p.style.display='block';
-    if(dataVar==='logoData')logoData=e.target.result;
-  };
-  reader.readAsDataURL(file);
-}
 
 // Save to server via GET (avoids CORS)
 async function saveToServer(action, data) {
@@ -554,12 +541,9 @@ function applySettings(){
   document.getElementById('siteName').value=settings.siteName||'';
   document.getElementById('heroSubtitle').value=settings.heroSubtitle||'';
   document.getElementById('headerColor').value=settings.headerColor||'#1a1a2e';
-  if(settings.logo){
-    document.getElementById('logoPreview').src=settings.logo;
-    document.getElementById('logoPreview').style.display='block';
-    document.getElementById('logoUrl').value=settings.logo;
-    logoData=settings.logo;
-  }
+  try{ logoSlides=JSON.parse(settings.logoSlides||'[]'); }catch(e){ logoSlides=[]; }
+  if(!logoSlides.length&&settings.logo) logoSlides=[{url:settings.logo,duration:5}];
+  renderLogoSlides();
   document.getElementById('contactEmail').value=settings.contactEmail||'';
   try{ hiddenDays=JSON.parse(settings.hiddenDays||'[]'); }catch(e){ hiddenDays=[]; }
   hiddenDays.forEach(i=>{ const cb=document.getElementById('hideDay'+i); if(cb) cb.checked=true; });
@@ -887,24 +871,46 @@ async function saveHalls(){
   showOk('hallsOk');
 }
 
+function renderLogoSlides(){
+  const list=document.getElementById('logoSlidesList');
+  if(!list)return;
+  list.innerHTML='';
+  logoSlides.forEach((slide,i)=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;gap:8px;align-items:center;margin-bottom:10px;background:#f8f8f8;border-radius:8px;padding:8px 10px;';
+    row.innerHTML=`<span style="font-size:0.78rem;color:#888;min-width:18px;text-align:center;">${i+1}</span>`+
+      `<input type="url" value="${escHtml(slide.url||'')}" placeholder="https://res.cloudinary.com/..." style="flex:1;padding:6px 8px;border:1px solid #ddd;border-radius:6px;font-size:0.82rem;" oninput="logoSlides[${i}].url=this.value"/>`+
+      (slide.url?`<img src="${escHtml(slide.url)}" style="width:40px;height:40px;object-fit:cover;border-radius:5px;flex-shrink:0;"/>`:'<div style="width:40px;height:40px;border:1px dashed #ccc;border-radius:5px;flex-shrink:0;"></div>')+
+      `<select onchange="logoSlides[${i}].duration=+this.value" style="padding:5px 6px;border:1px solid #ddd;border-radius:6px;font-size:0.8rem;font-family:Assistant;">`+
+      [3,5,7,10,15,20,30].map(s=>`<option value="${s}"${slide.duration===s?' selected':''}>${s} שנ'</option>`).join('')+
+      `</select>`+
+      `<button type="button" onclick="removeLogoSlide(${i})" style="background:#fde8e8;border:1px solid #f5b8b8;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:0.8rem;color:#a00;">✕</button>`;
+    list.appendChild(row);
+  });
+  document.getElementById('addSlideBtn').style.display=logoSlides.length>=10?'none':'inline-block';
+}
+
+function addLogoSlide(){
+  if(logoSlides.length>=10)return;
+  logoSlides.push({url:'',duration:5});
+  renderLogoSlides();
+}
+
+function removeLogoSlide(i){
+  logoSlides.splice(i,1);
+  renderLogoSlides();
+}
+
 async function saveLogo(){
-  const logoUrl = document.getElementById('logoUrl').value || logoData;
+  const slides=logoSlides.filter(s=>s.url.trim());
   await saveToServer('saveSettings', {
     siteName: document.getElementById('siteName').value,
     heroSubtitle: document.getElementById('heroSubtitle').value,
-    logo: logoUrl,
+    logo: slides.length?slides[0].url:'',
+    logoSlides: JSON.stringify(slides),
     headerColor: document.getElementById('headerColor').value
   });
   showOk('logoOk');
-}
-
-function previewUrl(inputId, previewId) {
-  const url = document.getElementById(inputId).value;
-  if (!url) return;
-  const img = document.getElementById(previewId);
-  img.src = url;
-  img.style.display = 'block';
-  logoData = url;
 }
 
 // ===== COLUMN ORDER =====
@@ -989,7 +995,7 @@ async function saveAll(){
     await saveHalls();
 
     // מזג כל ההגדרות לבקשה אחת כדי למנוע קריסות מקבילות
-    const logoUrl=document.getElementById('logoUrl').value||logoData;
+    const _validSlides=logoSlides.filter(s=>s.url.trim());
     const adPayload={};
     ['Top','Bottom','Side'].forEach(pos=>{
       adPayload['showAd'+pos]=adState[pos]?'true':'false';
@@ -1000,7 +1006,8 @@ async function saveAll(){
     await saveToServer('saveSettings', {
       siteName: document.getElementById('siteName').value,
       heroSubtitle: document.getElementById('heroSubtitle').value,
-      logo: logoUrl,
+      logo: _validSlides.length?_validSlides[0].url:'',
+      logoSlides: JSON.stringify(_validSlides),
       headerColor: document.getElementById('headerColor').value,
       contactEmail: document.getElementById('contactEmail').value,
       hallOrder: JSON.stringify(hallOrder),
@@ -1119,7 +1126,7 @@ async function changePass(){
 }
 
 // ===== PASSWORD GATE =====
-const API_URL_GATE='https://script.google.com/macros/s/AKfycbziYMBlMR3C_QbmPmDESOkYBWPSGwJ4f2sja-Os4BKj7Xm5KLgdNkhEmY4w3_5Lq_RtnA/exec';
+const API_URL_GATE='https://script.google.com/macros/s/AKfycbylfK2AoCFcDCpvRWCS6DB3ciPL0VvzsrlNhtmhOxIuxW7v5LmI6Sic5vTvY37gae3mWQ/exec';
 
 async function checkGate(){
   const pass=document.getElementById('gatePass').value;
