@@ -7,8 +7,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://script.google.com">
 <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
+gtag('consent','default',{'analytics_storage':'denied','ad_storage':'denied'});
+</script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-H8MXTNM0HY"></script>
-<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-H8MXTNM0HY');</script>
+<script>gtag('js',new Date());gtag('config','G-H8MXTNM0HY');</script>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <meta name="description" content="זמינות אולמות חתונה בזמן אמת - בדקו אונליין אילו אולמות פנויים בתאריך שלכם, השוו בין אולמות, וצרו קשר בקליק. עדכון אוטומטי מהלוח שנה של כל אולם.">
 <meta name="keywords" content="אולמות חתונה, זמינות אולמות, אולמות אירועים, אולם לחתונה, חיפוש אולם פנוי">
@@ -244,10 +247,34 @@ th.hall-name-th:hover{background:#2a2a4e;}
   body.has-bottom-ad .calendar-view{padding-bottom:min(2.5cm,15vh);}
   .ad-bottom-spacer{height:min(2.5cm,15vh);}
   body.has-bottom-ad #adSidebar{height:calc(100vh - 56px - min(2.5cm,15vh));}
-}
+}/* Cookie consent banner */
+#cookieBanner{display:none;position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,0.55);z-index:4000;align-items:center;justify-content:center;padding:16px;}
+#cookieBanner.show{display:flex;}
+#cookieBannerBox{background:white;color:#1a1a2e;border-radius:14px;padding:26px 24px;max-width:420px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,0.3);font-size:0.85rem;line-height:1.6;text-align:center;}
+#cookieBannerBox h3{font-family:'Playfair Display',serif;font-size:1.15rem;margin-bottom:10px;color:#1a1a2e;}
+#cookieBannerBox a{color:#1a1a2e;text-decoration:underline;font-weight:600;}
+.cookie-btns{display:flex;gap:8px;margin-top:16px;}
+.cookie-btn{flex:1;padding:10px;border:none;border-radius:7px;cursor:pointer;font-family:'Rubik',sans-serif;font-weight:700;font-size:0.82rem;}
+.cookie-btn.accept{background:#1a1a2e;color:#e8b86d;}
+.cookie-btn.accept:hover{background:#2a2a4e;}
+.cookie-btn.decline{background:#eee;color:#444;}
+.cookie-btn.decline:hover{background:#e2e2e2;}
 </style>
 </head>
 <body>
+
+<!-- Cookie consent modal (one-time) -->
+<div id="cookieBanner">
+  <div id="cookieBannerBox">
+    <h3>🍪 שימוש בעוגיות</h3>
+    האתר משתמש בעוגיות (קוקיז) לצורך ניתוח שימוש בלבד (Google Analytics).
+    <a href="privacy.html" target="_blank">למדיניות הפרטיות</a>
+    <div class="cookie-btns">
+      <button class="cookie-btn accept" onclick="cookieConsentChoice(true)">מאשר/ת</button>
+      <button class="cookie-btn decline" onclick="cookieConsentChoice(false)">דוחה</button>
+    </div>
+  </div>
+</div>
 
 <!-- Hero Banner -->
 <div id="heroBanner">
@@ -1121,6 +1148,24 @@ function toggleSidebar(){
   sb.classList.toggle('open');
   ov.classList.toggle('open');
 }
+
+function cookieConsentChoice(accepted){
+  try{localStorage.setItem('cookieConsent',accepted?'granted':'denied');}catch(e){}
+  if(accepted&&typeof gtag==='function'){
+    gtag('consent','update',{'analytics_storage':'granted','ad_storage':'granted'});
+  }
+  document.getElementById('cookieBanner').classList.remove('show');
+}
+(function initCookieBanner(){
+  let saved=null;
+  try{saved=localStorage.getItem('cookieConsent');}catch(e){}
+  if(saved==='granted'){
+    if(typeof gtag==='function') gtag('consent','update',{'analytics_storage':'granted','ad_storage':'granted'});
+    return;
+  }
+  if(saved==='denied') return; // המשתמש כבר בחר לדחות, לא מציגים שוב
+  document.getElementById('cookieBanner').classList.add('show');
+})();
 
 fetchData();
 setInterval(fetchData,60000); // רענון אוטומטי כל דקה, כל עוד הדף פתוח
