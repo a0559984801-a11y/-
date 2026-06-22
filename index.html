@@ -19,6 +19,7 @@ gtag('consent','default',{'analytics_storage':'denied','ad_storage':'denied'});
 <meta property="og:type" content="website">
 <meta property="og:title" content="זמינות אולמות חתונה - כל האולמות במקום אחד">
 <meta property="og:description" content="בדקו בזמן אמת אילו אולמות חתונה פנויים בתאריך שלכם. השוו בין אולמות, סננו לפי אזור ומחיר, וצרו קשר ישירות.">
+<meta property="og:image" content="https://res.cloudinary.com/df8cqjeu6/image/upload/f_auto,q_auto,w_1200,h_630,c_fill/REPLACE_WITH_YOUR_PHOTO_ID">
 <meta property="og:url" content="https://a0559984801-a11y.github.io/-/index.html">
 <meta property="og:locale" content="he_IL">
 <meta name="twitter:card" content="summary_large_image">
@@ -268,7 +269,7 @@ th.hall-name-th:hover{background:#2a2a4e;}
   <div id="cookieBannerBox">
     <h3>🍪 שימוש בעוגיות</h3>
     האתר משתמש בעוגיות (קוקיז) לצורך ניתוח שימוש בלבד (Google Analytics).
-    <a href="privacy.html" target="_blank">למדיניות הפרטיות</a>
+    <a href="privacy.html" target="_blank" rel="noopener">למדיניות הפרטיות</a>
     <div class="cookie-btns">
       <button class="cookie-btn accept" onclick="cookieConsentChoice(true)">מאשר/ת</button>
       <button class="cookie-btn decline" onclick="cookieConsentChoice(false)">דוחה</button>
@@ -461,12 +462,38 @@ function safeParse(str,fallback){
   if(!str) return fallback;
   try{ return JSON.parse(str); }catch(e){ return fallback; }
 }
+// Format a Date as YYYY-MM-DD using LOCAL time (not UTC like toISOString()).
+// Using toISOString() here was the cause of the date filter showing "yesterday":
+// for users east of UTC (like Israel, UTC+2/+3), toISOString() converts to UTC
+// first, which can roll the date back by one day depending on the time of day.
+function toLocalDateStr(d){
+  const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+// Send a tracking "beacon" (logVisit/logHallView) and retry once if it fails.
+// Apps Script returns 503 when too many requests hit the deployment at the
+// same moment (e.g. logVisit firing right alongside the halls/settings data
+// fetch). A single delayed retry with jitter clears almost all of these.
+function sendBeacon(url,attempt){
+  attempt=attempt||1;
+  const img=new Image();
+  img.onerror=function(){
+    if(attempt<2){
+      const delay=1200+Math.random()*1500;
+      setTimeout(()=>sendBeacon(url,attempt+1),delay);
+    }
+  };
+  img.src=url;
+}
 // Log visit to Google Sheets (fire and forget, never blocks the page)
 function logVisit(page){
   // Fire after load + idle so the slow Apps Script beacon never extends the load event.
+  // An extra randomized delay staggers this away from the initial data fetch
+  // (which also hits the same Apps Script deployment), reducing 503s.
   const fire=()=>{try{
     const device=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?'mobile':'desktop';
-    new Image().src=API_URL+'?action=logVisit&page='+encodeURIComponent(page)+'&device='+device+'&t='+Date.now();
+    const url=API_URL+'?action=logVisit&page='+encodeURIComponent(page)+'&device='+device+'&t='+Date.now();
+    setTimeout(()=>sendBeacon(url),500+Math.random()*1000);
   }catch(e){}};
   const sched=()=>window.requestIdleCallback?window.requestIdleCallback(fire):setTimeout(fire,1);
   if(document.readyState==='complete') sched();
@@ -475,8 +502,8 @@ function logVisit(page){
 function logHallView(name){
   try{
     const device=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?'mobile':'desktop';
-    const img=new Image();
-    img.src=API_URL+'?action=logHallView&hall='+encodeURIComponent(name)+'&device='+device+'&t='+Date.now();
+    const url=API_URL+'?action=logHallView&hall='+encodeURIComponent(name)+'&device='+device+'&t='+Date.now();
+    sendBeacon(url);
   }catch(e){}
 }
 const DAYS_HE=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
@@ -554,7 +581,7 @@ function startAd(pos,items){
 }
 
 function wrapLink(link,html){
-  return link?`<a href="${link}" target="_blank" style="display:block;width:100%;height:100%;text-decoration:none;position:relative;">${html}</a>`:html;
+  return link?`<a href="${link}" target="_blank" rel="noopener" style="display:block;width:100%;height:100%;text-decoration:none;position:relative;">${html}</a>`:html;
 }
 
 const IS_MOBILE=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
@@ -846,10 +873,10 @@ function openHallModal(name){
   if(details.seats) rows.push(['👥 מקומות',details.seats]);
   if(details.access) rows.push(['♿ נגישות',details.access]);
   if(details.desc) rows.push(['תיאור',details.desc]);
-  if(details.links&&details.links.length) rows.push(['קישורים',details.links.map(l=>`<a href="${l.url}" target="_blank">${l.label||l.url}</a>`).join(' ')]);
+  if(details.links&&details.links.length) rows.push(['קישורים',details.links.map(l=>`<a href="${l.url}" target="_blank" rel="noopener">${l.label||l.url}</a>`).join(' ')]);
   if(details.customFields&&details.customFields.length){
     details.customFields.filter(f=>f.label&&f.value).forEach(f=>{
-      const val=f.type==='link'?`<a href="${f.value}" target="_blank" style="display:inline-block;padding:4px 14px;background:#1a1a2e;color:white;border-radius:5px;text-decoration:none;font-size:0.8rem;font-weight:600;">קישור ↗</a>`:f.value;
+      const val=f.type==='link'?`<a href="${f.value}" target="_blank" rel="noopener" style="display:inline-block;padding:4px 14px;background:#1a1a2e;color:white;border-radius:5px;text-decoration:none;font-size:0.8rem;font-weight:600;">קישור ↗</a>`:f.value;
       rows.push([f.label,val]);
     });
   }
@@ -941,8 +968,8 @@ function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCal();
 function applyFilters(){buildTable();if(currentView==='calendar')renderCal();}
 function resetFilters(){
   const t=new Date(),e=new Date();e.setDate(t.getDate()+365);
-  document.getElementById('filterFrom').value=t.toISOString().split('T')[0];
-  document.getElementById('filterTo').value=e.toISOString().split('T')[0];
+  document.getElementById('filterFrom').value=toLocalDateStr(t);
+  document.getElementById('filterTo').value=toLocalDateStr(e);
   ['listHall','listCity','listKashrut','listAccess'].forEach(id=>{
     document.querySelectorAll(`#${id} input`).forEach(c=>c.checked=false);
     document.getElementById(id.replace('list','lbl')).textContent='הכל';
@@ -1052,8 +1079,8 @@ function applyHebrewMonthFilter(){
   const matchingDates=allData.filter(r=>{const he=toHe(r.dateObj);return he.includes(month);});
   if(!matchingDates.length) return;
   const sorted=matchingDates.map(r=>r.dateObj).sort((a,b)=>a-b);
-  document.getElementById('filterFrom').value=sorted[0].toISOString().split('T')[0];
-  document.getElementById('filterTo').value=sorted[sorted.length-1].toISOString().split('T')[0];
+  document.getElementById('filterFrom').value=toLocalDateStr(sorted[0]);
+  document.getElementById('filterTo').value=toLocalDateStr(sorted[sorted.length-1]);
   applyFilters();
 }
 
@@ -1092,8 +1119,8 @@ function applyData(availData,settingsData,hallsData){
   populateFilters();
   if(!document.getElementById('filterFrom').value){
     const t=new Date(),e=new Date();e.setDate(t.getDate()+365);
-    document.getElementById('filterFrom').value=t.toISOString().split('T')[0];
-    document.getElementById('filterTo').value=e.toISOString().split('T')[0];
+    document.getElementById('filterFrom').value=toLocalDateStr(t);
+    document.getElementById('filterTo').value=toLocalDateStr(e);
   }
   document.getElementById('loading').style.display='none';
   buildTable();
