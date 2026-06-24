@@ -12,7 +12,7 @@ gtag('consent','default',{'analytics_storage':'denied','ad_storage':'denied'});
 </script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-H8MXTNM0HY"></script>
 <script>gtag('js',new Date());gtag('config','G-H8MXTNM0HY');</script>
-<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/png" href="favicon.png">
 <meta name="description" content="זמינות אולמות חתונה בזמן אמת - בדקו אונליין אילו אולמות פנויים בתאריך שלכם, השוו בין אולמות, וצרו קשר בקליק. עדכון אוטומטי מהלוח שנה של כל אולם.">
 <meta name="keywords" content="אולמות חתונה, זמינות אולמות, אולמות אירועים, אולם לחתונה, חיפוש אולם פנוי">
 <link rel="canonical" href="https://a0559984801-a11y.github.io/-/index.html">
@@ -112,6 +112,25 @@ body.has-bottom-ad .sidebar{bottom:2.5cm;}
 
 .btn-filter{width:100%;padding:8px;background:#1a1a2e;color:white;border:none;border-radius:6px;cursor:pointer;font-family:'Rubik',sans-serif;font-weight:600;font-size:0.85rem;margin-top:4px;}
 .btn-reset{width:100%;padding:6px;background:#eee;color:#444;border:none;border-radius:6px;cursor:pointer;font-family:'Rubik',sans-serif;font-size:0.78rem;margin-top:5px;}
+.date-dd{padding:10px 8px;min-width:200px;max-height:none!important;overflow:visible!important;}
+.date-tabs{display:flex;gap:4px;margin-bottom:8px;}
+.date-tab{flex:1;padding:5px;border:1px solid #ddd;border-radius:5px;background:#fafafa;cursor:pointer;font-family:'Rubik',sans-serif;font-size:0.75rem;font-weight:600;color:#555;}
+.date-tab.active{background:#1a1a2e;color:white;border-color:#1a1a2e;}
+.date-panel{display:flex;flex-direction:column;}
+.btn-date-apply{width:100%;margin-top:8px;padding:6px;background:#1a1a2e;color:white;border:none;border-radius:5px;cursor:pointer;font-family:'Rubik',sans-serif;font-size:0.78rem;font-weight:600;}
+.he-date-input{display:flex;justify-content:space-between;align-items:center;padding:6px 7px;border:1px solid #ddd;border-radius:6px;background:#fafafa;cursor:pointer;font-size:0.8rem;font-family:'Rubik',sans-serif;}
+.he-date-input:hover{border-color:#1a1a2e;}
+.he-cal-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.he-cal-nav button{background:none;border:1px solid #ddd;border-radius:4px;cursor:pointer;padding:1px 7px;font-size:1rem;line-height:1.4;}
+.he-cal-nav span{font-size:0.76rem;font-weight:700;color:#1a1a2e;}
+.he-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+.he-cal-dh{text-align:center;font-size:0.52rem;color:#999;font-weight:600;padding:2px 0;}
+.he-cal-cell{min-height:22px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;border-radius:3px;color:#aaa;border:1px solid transparent;}
+.he-cal-cell.hcv{cursor:pointer;color:#333;}
+.he-cal-cell.hcv:hover{background:#f0ede8;}
+.he-cal-cell.hcd{font-weight:800;color:#1a1a2e;}
+.he-cal-cell.hcs{background:#1a1a2e!important;color:white!important;}
+.he-cal-cell.hcr{background:#e8e5f0;}
 
 /* Contact banner */
 .contact-banner{margin-top:auto;padding-top:12px;border-top:1px solid #eee;}
@@ -305,25 +324,37 @@ th.hall-name-th:hover{background:#2a2a4e;}
     <div class="sidebar-title">🔍 סינון</div>
 
     <div class="filter-group">
-      <span class="filter-label">מתאריך</span>
-      <input type="date" id="filterFrom" class="filter-input"/>
-    </div>
-    <div class="filter-group">
-      <span class="filter-label">עד תאריך</span>
-      <input type="date" id="filterTo" class="filter-input"/>
-    </div>
-    <div class="filter-group">
-      <span class="filter-label" style="font-size:0.65rem;color:#999">או חפש חודש עברי</span>
-      <select id="filterHeMonth" class="filter-input" onchange="applyHebrewMonthFilter()" style="font-size:0.75rem;">
-        <option value="">-- בחר חודש עברי --</option>
-        <option value="תשרי">החל מ-תשרי</option><option value="חשון">החל מ-חשון</option>
-        <option value="כסלו">החל מ-כסלו</option><option value="טבת">החל מ-טבת</option>
-        <option value="שבט">החל מ-שבט</option><option value="אדר">החל מ-אדר</option>
-        <option value="אדר ב">החל מ-אדר ב</option><option value="ניסן">החל מ-ניסן</option>
-        <option value="אייר">החל מ-אייר</option><option value="סיון">החל מ-סיון</option>
-        <option value="תמוז">החל מ-תמוז</option><option value="אב">החל מ-אב</option>
-        <option value="אלול">החל מ-אלול</option>
-      </select>
+      <span class="filter-label">תאריך</span>
+      <div class="dropdown-check">
+        <button class="dropdown-btn" id="btnDate" onclick="toggleDD('listDate','btnDate')"><span id="lblDate">הכל</span></button>
+        <div class="dropdown-list date-dd" id="listDate">
+          <div class="date-tabs">
+            <button class="date-tab active" id="tabGreg" onclick="switchDateTab('greg')">לועזי</button>
+            <button class="date-tab" id="tabHeb" onclick="switchDateTab('heb')">עברי</button>
+          </div>
+          <div id="dateTabGreg" class="date-panel">
+            <span class="filter-label">מתאריך</span>
+            <input type="date" id="filterFrom" class="filter-input"/>
+            <span class="filter-label" style="margin-top:6px">עד תאריך</span>
+            <input type="date" id="filterTo" class="filter-input"/>
+          </div>
+          <div id="dateTabHeb" class="date-panel" style="display:none">
+            <span class="filter-label">מתאריך (עברי)</span>
+            <div class="he-date-input" id="heFromBtn" onclick="showHePicker('from')"><span id="heFromDisplay">-- בחר --</span><span>📅</span></div>
+            <span class="filter-label" style="margin-top:6px">עד תאריך (עברי)</span>
+            <div class="he-date-input" id="heToBtn" onclick="showHePicker('to')"><span id="heToDisplay">-- בחר --</span><span>📅</span></div>
+            <div id="heCalPopup" style="display:none;margin-top:8px;border:1px solid #ddd;border-radius:8px;padding:8px;background:white;">
+              <div class="he-cal-nav">
+                <button onclick="heCalNav(1)">&#x2039;</button>
+                <span id="heCalTitle"></span>
+                <button onclick="heCalNav(-1)">&#x203a;</button>
+              </div>
+              <div class="he-cal-grid" id="heCalGrid"></div>
+            </div>
+          </div>
+          <button class="btn-date-apply" onclick="applyDateFilter()">החל</button>
+        </div>
+      </div>
     </div>
     <div class="filter-group">
       <span class="filter-label">עיר</span>
@@ -970,6 +1001,12 @@ function resetFilters(){
   const t=new Date(),e=new Date();e.setDate(t.getDate()+365);
   document.getElementById('filterFrom').value=toLocalDateStr(t);
   document.getElementById('filterTo').value=toLocalDateStr(e);
+  _heFrom=''; _heTo='';
+  document.getElementById('heFromDisplay').textContent='-- בחר --';
+  document.getElementById('heToDisplay').textContent='-- בחר --';
+  document.getElementById('heCalPopup').style.display='none';
+  switchDateTab('greg');
+  document.getElementById('lblDate').textContent='הכל';
   ['listHall','listCity','listKashrut','listAccess'].forEach(id=>{
     document.querySelectorAll(`#${id} input`).forEach(c=>c.checked=false);
     document.getElementById(id.replace('list','lbl')).textContent='הכל';
@@ -1073,14 +1110,83 @@ function loadSettings(){
   }
 }
 
-function applyHebrewMonthFilter(){
-  const month=document.getElementById('filterHeMonth').value;
-  if(!month) return;
-  const matchingDates=allData.filter(r=>{const he=toHe(r.dateObj);return he.includes(month);});
-  if(!matchingDates.length) return;
-  const sorted=matchingDates.map(r=>r.dateObj).sort((a,b)=>a-b);
-  document.getElementById('filterFrom').value=toLocalDateStr(sorted[0]);
-  document.getElementById('filterTo').value=toLocalDateStr(sorted[sorted.length-1]);
+let _dateTab='greg';
+function switchDateTab(tab){
+  _dateTab=tab;
+  document.getElementById('dateTabGreg').style.display=tab==='greg'?'flex':'none';
+  document.getElementById('dateTabHeb').style.display=tab==='heb'?'flex':'none';
+  document.getElementById('tabGreg').classList.toggle('active',tab==='greg');
+  document.getElementById('tabHeb').classList.toggle('active',tab==='heb');
+}
+let _heCalMonths=[],_heCalIdx=0,_hePick='from',_heFrom='',_heTo='';
+function buildHeCalMonths(){
+  const s=new Date();s.setDate(s.getDate()-7);
+  const e=new Date();e.setDate(e.getDate()+400);
+  const map=new Map();
+  for(let d=new Date(s);d<=e;d.setDate(d.getDate()+1)){
+    const dt=new Date(d);
+    const key=dt.toLocaleDateString('he-IL-u-ca-hebrew',{month:'long',year:'numeric'});
+    if(!map.has(key))map.set(key,[]);
+    map.get(key).push({greg:new Date(dt),dow:dt.getDay()});
+  }
+  _heCalMonths=[...map.entries()].map(([key,dates])=>({key,dates}));
+  const todayKey=new Date().toLocaleDateString('he-IL-u-ca-hebrew',{month:'long',year:'numeric'});
+  _heCalIdx=Math.max(0,_heCalMonths.findIndex(m=>m.key===todayKey));
+}
+function showHePicker(target){
+  _hePick=target;
+  if(!_heCalMonths.length)buildHeCalMonths();
+  const p=document.getElementById('heCalPopup');
+  p.style.display=p.style.display==='none'?'block':'none';
+  if(p.style.display==='block')renderHeCal();
+}
+function renderHeCal(){
+  const mo=_heCalMonths[_heCalIdx];if(!mo)return;
+  const f=mo.dates[0].greg;
+  const mName=f.toLocaleDateString('he-IL-u-ca-hebrew',{month:'long'});
+  const yName=f.toLocaleDateString('he-IL-u-ca-hebrew',{year:'numeric'});
+  document.getElementById('heCalTitle').textContent=mName+' '+yName;
+  const dataSet=new Set(allData.map(r=>toLocalDateStr(r.dateObj)));
+  let html='';
+  ['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'].forEach(d=>{html+=`<div class="he-cal-dh">${d}</div>`;});
+  for(let i=0;i<mo.dates[0].dow;i++)html+=`<div class="he-cal-cell"></div>`;
+  mo.dates.forEach((dt,i)=>{
+    const gs=toLocalDateStr(dt.greg);
+    const dayLbl=HD[i+1]||String(i+1);
+    let cls='he-cal-cell hcv';
+    if(dataSet.has(gs))cls+=' hcd';
+    if(gs===_heFrom||gs===_heTo)cls+=' hcs';
+    else if(_heFrom&&_heTo&&gs>_heFrom&&gs<_heTo)cls+=' hcr';
+    html+=`<div class="${cls}" onclick="selectHeDate('${gs}')">${dayLbl}</div>`;
+  });
+  document.getElementById('heCalGrid').innerHTML=html;
+}
+function heCalNav(dir){
+  _heCalIdx=Math.max(0,Math.min(_heCalMonths.length-1,_heCalIdx+dir));
+  renderHeCal();
+}
+function selectHeDate(gs){
+  const d=new Date(gs+'T00:00:00');
+  if(_hePick==='from'){_heFrom=gs;document.getElementById('heFromDisplay').textContent=toHe(d);}
+  else{_heTo=gs;document.getElementById('heToDisplay').textContent=toHe(d);}
+  renderHeCal();
+}
+function updateDateLabel(){
+  const fv=document.getElementById('filterFrom').value;
+  const tv=document.getElementById('filterTo').value;
+  const today=toLocalDateStr(new Date());
+  const defTo=toLocalDateStr(new Date(Date.now()+365*864e5));
+  if((!fv&&!tv)||(fv===today&&tv===defTo)){document.getElementById('lblDate').textContent='הכל';return;}
+  const lbl=(fv?fv.split('-').reverse().join('/'):'')+(tv?' – '+tv.split('-').reverse().join('/'):'');
+  document.getElementById('lblDate').textContent=lbl;
+}
+function applyDateFilter(){
+  if(_dateTab==='heb'){
+    if(_heFrom)document.getElementById('filterFrom').value=_heFrom;
+    if(_heTo)document.getElementById('filterTo').value=_heTo;
+  }
+  updateDateLabel();
+  toggleDD('listDate','btnDate');
   applyFilters();
 }
 
