@@ -131,11 +131,6 @@ textarea{resize:vertical;min-height:70px;}
     <div class="err" id="gateErr">❌ סיסמה שגויה, נסה שוב</div>
     <input type="password" id="gatePass" placeholder="סיסמה..." onkeydown="if(event.key==='Enter')checkGate()"/>
     <button onclick="checkGate()">כניסה</button>
-    <div id="recoverSection" style="margin-top:14px;border-top:1px solid #eee;padding-top:12px;">
-      <div class="back-btn" onclick="sendRecoveryEmail()" style="color:#1a1a2e;font-weight:600;">📧 שכחתי סיסמה — שלח למייל</div>
-      <div id="recoverOk" style="display:none;color:#1a7a45;font-size:0.8rem;margin-top:6px;">✅ הסיסמה נשלחה ל-a0559984801@gmail.com</div>
-      <div id="recoverErr" style="display:none;color:#e74c3c;font-size:0.8rem;margin-top:6px;">❌ שגיאה בשליחה, נסה שוב</div>
-    </div>
     <div class="back-btn" onclick="history.back()" style="margin-top:10px;">← חזרה לאתר</div>
   </div>
 </div>
@@ -369,6 +364,7 @@ textarea{resize:vertical;min-height:70px;}
 
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbylfK2AoCFcDCpvRWCS6DB3ciPL0VvzsrlNhtmhOxIuxW7v5LmI6Sic5vTvY37gae3mWQ/exec';
+let _adminPass='';
 
 // ===== Statistics / נתוני גלישה =====
 async function loadStats(){
@@ -378,8 +374,7 @@ async function loadStats(){
   loading.textContent='טוען נתונים...';
   content.style.display='none';
   try{
-    const res=await fetch(API_URL+'?action=stats&t='+Date.now());
-    const s=await res.json();
+    const s=await fetchAuthed('stats');
     document.getElementById('statToday').textContent=s.today||0;
     document.getElementById('statWeek').textContent=s.week||0;
     document.getElementById('statMonth').textContent=s.month||0;
@@ -431,8 +426,7 @@ async function loadHallViewStats(){
   loading.style.display='block';
   wrap.style.display='none';
   try{
-    const res=await fetch(API_URL+'?action=hallStats&t='+Date.now());
-    const data=await res.json();
+    const data=await fetchAuthed('hallStats');
     // data = { hallName: { "2025-01-01": 3, ... }, ... }
     const days=[];
     for(let i=13;i>=0;i--){
@@ -498,12 +492,12 @@ function show(name,e){
 }
 function showOk(id){const el=document.getElementById(id);el.style.display='block';setTimeout(()=>el.style.display='none',2500);}
 
-// Save to server via GET (avoids CORS)
+// Save to server via POST with auth
 async function saveToServer(action, data) {
   try {
     await fetch(API_URL, {
       method: 'POST',
-      body: JSON.stringify({action, data}),
+      body: JSON.stringify({action, data, authPass: _adminPass}),
       headers: {'Content-Type': 'text/plain'}
     });
   } catch(e) {}
@@ -515,6 +509,17 @@ async function postData(type, payload) {
   } else if (type === 'settings') {
     await saveToServer('saveSettings', payload);
   }
+}
+
+// Authenticated read (stats/hallStats). Uses POST so the admin password is sent in the
+// body, never in a URL that Google logs or the browser keeps in history.
+async function fetchAuthed(action){
+  const res=await fetch(API_URL,{
+    method:'POST',
+    body:JSON.stringify({action,authPass:_adminPass}),
+    headers:{'Content-Type':'text/plain'}
+  });
+  return res.json();
 }
 
 // Load all from server
@@ -1117,13 +1122,14 @@ async function saveContact(){
 
 async function changePass(){
   const o=document.getElementById('p0').value,n=document.getElementById('p1').value,c=document.getElementById('p2').value;
-  const cur=settings.adminPass||'CHANGE_ME';
   const err=document.getElementById('passErr');err.style.display='none';
-  if(o!==cur){err.textContent='סיסמה נוכחית שגויה';err.style.display='block';return;}
-  if(n.length<4){err.textContent='סיסמה חייבת 4 תווים לפחות';err.style.display='block';return;}
+  if(n.length<8){err.textContent='סיסמה חייבת 8 תווים לפחות';err.style.display='block';return;}
   if(n!==c){err.textContent='הסיסמאות אינן תואמות';err.style.display='block';return;}
+  try{
+    if(!await verifyPass(o)){err.textContent='סיסמה נוכחית שגויה';err.style.display='block';return;}
+  }catch(e){err.textContent='שגיאה בבדיקת הסיסמה';err.style.display='block';return;}
   await postData('settings',{adminPass:n});
-  settings.adminPass=n;
+  _adminPass=n;
   ['p0','p1','p2'].forEach(id=>document.getElementById(id).value='');
   showOk('passOk');
 }
@@ -1131,14 +1137,24 @@ async function changePass(){
 // ===== PASSWORD GATE =====
 const API_URL_GATE='https://script.google.com/macros/s/AKfycbylfK2AoCFcDCpvRWCS6DB3ciPL0VvzsrlNhtmhOxIuxW7v5LmI6Sic5vTvY37gae3mWQ/exec';
 
+// Verify a password via POST (text/plain = no CORS preflight). Sending it in the body
+// instead of the URL keeps it out of Google's execution logs and browser history.
+async function verifyPass(pass){
+  const res=await fetch(API_URL_GATE,{
+    method:'POST',
+    body:JSON.stringify({action:'checkPassword',pass}),
+    headers:{'Content-Type':'text/plain'}
+  });
+  const data=await res.json();
+  return !!data.success;
+}
+
 async function checkGate(){
   const pass=document.getElementById('gatePass').value;
   if(!pass) return;
   try{
-    const res=await fetch(API_URL_GATE+'?action=settings');
-    const s=await res.json();
-    const correct=s.adminPass||'CHANGE_ME';
-    if(pass===correct){
+    if(await verifyPass(pass)){
+      _adminPass=pass;
       document.getElementById('passwordGate').style.display='none';
       document.getElementById('adminContent').style.display='block';
       loadAll();
@@ -1148,7 +1164,6 @@ async function checkGate(){
       document.getElementById('gatePass').focus();
     }
   } catch(e){
-    // Fallback if can't fetch settings
     document.getElementById('gateErr').textContent='שגיאה בטעינה, נסה שוב';
     document.getElementById('gateErr').style.display='block';
   }
@@ -1156,19 +1171,6 @@ async function checkGate(){
 
 document.getElementById('gatePass').focus();
 
-async function sendRecoveryEmail(){
-  const btn=document.querySelector('#recoverSection .back-btn');
-  const okEl=document.getElementById('recoverOk');
-  const errEl=document.getElementById('recoverErr');
-  okEl.style.display='none'; errEl.style.display='none';
-  btn.textContent='שולח...';
-  try{
-    const res=await fetch(API_URL_GATE+'?action=sendPassEmail');
-    const data=await res.json();
-    if(data.success){ okEl.style.display='block'; btn.textContent='📧 שכחתי סיסמה — שלח למייל'; }
-    else { errEl.style.display='block'; btn.textContent='📧 שכחתי סיסמה — שלח למייל'; }
-  }catch(e){ errEl.style.display='block'; btn.textContent='📧 שכחתי סיסמה — שלח למייל'; }
-}
 </script>
 </body>
 </html>

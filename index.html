@@ -496,6 +496,7 @@ function safeParse(str,fallback){
   if(!str) return fallback;
   try{ return JSON.parse(str); }catch(e){ return fallback; }
 }
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 // Format a Date as YYYY-MM-DD using LOCAL time (not UTC like toISOString()).
 // Using toISOString() here was the cause of the date filter showing "yesterday":
 // for users east of UTC (like Israel, UTC+2/+3), toISOString() converts to UTC
@@ -547,6 +548,7 @@ const MONTHS_GREG=['ינואר','פברואר','מרץ','אפריל','מאי','�
 let allData=[], currentView='table', calYear, calMonth, calHall='', selectedDateKey=null;
 let localHiddenDays=[];
 const localHiddenDates=new Set();
+let _tableHalls=[];
 
 function initDayToggles(){
   try{ localHiddenDays=JSON.parse((window._settings&&window._settings.hiddenDays)||'[]'); }catch(e){ localHiddenDays=[]; }
@@ -615,7 +617,7 @@ function startAd(pos,items){
 }
 
 function wrapLink(link,html){
-  return link?`<a href="${link}" target="_blank" rel="noopener" style="display:block;width:100%;height:100%;text-decoration:none;position:relative;">${html}</a>`:html;
+  return link?`<a href="${escHtml(link)}" target="_blank" rel="noopener" style="display:block;width:100%;height:100%;text-decoration:none;position:relative;">${html}</a>`:html;
 }
 
 const IS_MOBILE=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
@@ -630,7 +632,7 @@ function updateBottomAdMedia(ad,media){
   let inner='';
   if(media.type==='video') inner+=`<video autoplay loop muted><source src="${url}" type="video/mp4"/></video>`;
   else inner+=`<img src="${url}"/>`;
-  if(txt) inner+=`<span class="ad-bottom-text">${txt}</span>`;
+  if(txt) inner+=`<span class="ad-bottom-text">${escHtml(txt)}</span>`;
   content.innerHTML=wrapLink(link,inner);
 }
 
@@ -654,7 +656,7 @@ function updateBottomAd(ad){
   let inner='';
   if(img) inner+=`<img src="${img}"/>`;
   else if(vid) inner+=`<video autoplay loop muted><source src="${vid}" type="video/mp4"/></video>`;
-  if(txt) inner+=`<span class="ad-bottom-text">${txt}</span>`;
+  if(txt) inner+=`<span class="ad-bottom-text">${escHtml(txt)}</span>`;
   content.innerHTML=wrapLink(link,inner);
 }
 
@@ -668,7 +670,7 @@ function updateSideAd(ad){
   let inner='';
   if(img) inner=`<img src="${img}" style="width:100%;height:100%;object-fit:cover;display:block;"/>`;
   else if(vid) inner=`<video autoplay loop muted style="width:100%;height:100%;object-fit:cover;"><source src="${vid}" type="video/mp4"/></video>`;
-  else inner=`<span style="color:#999">${txt}</span>`;
+  else inner=`<span style="color:#999">${escHtml(txt)}</span>`;
   adSide.innerHTML=wrapLink(link,inner);
 }
 
@@ -721,7 +723,7 @@ function parseAPI(rows){
 
 function buildCL(listId,lblId,items){
   const all=`<div class="dropdown-item"><input type="checkbox" id="${listId}_all" value="__all__" onchange="toggleAll('${listId}','${lblId}',this)"><label for="${listId}_all"><strong>הכל</strong></label></div>`;
-  const opts=items.map((v,i)=>`<div class="dropdown-item"><input type="checkbox" id="${listId}_${i}" value="${v}" onchange="updateLbl('${listId}','${lblId}')"><label for="${listId}_${i}">${v}</label></div>`).join('');
+  const opts=items.map((v,i)=>`<div class="dropdown-item"><input type="checkbox" id="${listId}_${i}" value="${escHtml(v)}" onchange="updateLbl('${listId}','${lblId}')"><label for="${listId}_${i}">${escHtml(v)}</label></div>`).join('');
   document.getElementById(listId).innerHTML=all+opts;
 }
 
@@ -802,8 +804,9 @@ function buildTable(){
   const from=fv?new Date(fv):today,to=tv?new Date(tv):end;
   const dates=genDates(from,to);
 
+  _tableHalls=halls;
   let hRow='<tr><th class="date-col">תאריך</th>';
-  halls.forEach(h=>{const esc=h.replace(/'/g,"\\'");hRow+=`<th class="hall-name-th" onmouseenter="hallHoverStart('${esc}',event)" onmousemove="hallHoverMove(event)" onmouseleave="hallHoverEnd()" onclick="hallHoverEnd();openHallModal('${esc}')">${h}</th>`;});
+  halls.forEach((h,i)=>{hRow+=`<th class="hall-name-th" onmouseenter="hallHoverStart(${i},event)" onmousemove="hallHoverMove(event)" onmouseleave="hallHoverEnd()" onclick="hallHoverEnd();openHallModal(${i})">${escHtml(h)}</th>`;});
   hRow+='</tr>';
   document.getElementById('tableHead').innerHTML=hRow;
 
@@ -865,7 +868,7 @@ function positionTooltip(e){
 let hallHoverTimer=null, hallModalImages=[], hallModalImgIdx=0;
 let lastHallMouseEvent=null;
 
-function hallHoverStart(name,e){
+function hallHoverStart(i,e){
   lastHallMouseEvent=e;
   clearTimeout(hallHoverTimer);
   hallHoverTimer=setTimeout(()=>{_hallTip.style.display='block';positionHallTooltip(lastHallMouseEvent);},500);
@@ -887,7 +890,8 @@ function positionHallTooltip(e){
   _hallTip.style.top=y+'px';
 }
 
-function openHallModal(name){
+function openHallModal(i){
+  const name=_tableHalls[i];
   const details=(window._hallDetails||[]).find(h=>h.name===name);
   if(!details) return;
   logHallView(name);
@@ -900,18 +904,18 @@ function openHallModal(name){
 
   // Fields
   const rows=[];
-  if(details.city) rows.push(['📍 עיר',details.city]);
-  if(details.street) rows.push(['🏘️ רחוב',details.street]);
-  if(details.phone) rows.push(['📞 טלפון',`<a href="tel:${details.phone}">${details.phone}</a>`]);
-  if(details.kashrut) rows.push(['✡️ כשרות',details.kashrut]);
-  if(details.seats) rows.push(['👥 מקומות',details.seats]);
-  if(details.access) rows.push(['♿ נגישות',details.access]);
-  if(details.desc) rows.push(['תיאור',details.desc]);
-  if(details.links&&details.links.length) rows.push(['קישורים',details.links.map(l=>`<a href="${l.url}" target="_blank" rel="noopener">${l.label||l.url}</a>`).join(' ')]);
+  if(details.city) rows.push(['📍 עיר',escHtml(details.city)]);
+  if(details.street) rows.push(['🏘️ רחוב',escHtml(details.street)]);
+  if(details.phone) rows.push(['📞 טלפון',`<a href="tel:${escHtml(details.phone)}">${escHtml(details.phone)}</a>`]);
+  if(details.kashrut) rows.push(['✡️ כשרות',escHtml(details.kashrut)]);
+  if(details.seats) rows.push(['👥 מקומות',escHtml(String(details.seats))]);
+  if(details.access) rows.push(['♿ נגישות',escHtml(details.access)]);
+  if(details.desc) rows.push(['תיאור',escHtml(details.desc)]);
+  if(details.links&&details.links.length) rows.push(['קישורים',details.links.map(l=>`<a href="${escHtml(l.url)}" target="_blank" rel="noopener">${escHtml(l.label||l.url)}</a>`).join(' ')]);
   if(details.customFields&&details.customFields.length){
     details.customFields.filter(f=>f.label&&f.value).forEach(f=>{
-      const val=f.type==='link'?`<a href="${f.value}" target="_blank" rel="noopener" style="display:inline-block;padding:4px 14px;background:#1a1a2e;color:white;border-radius:5px;text-decoration:none;font-size:0.8rem;font-weight:600;">קישור ↗</a>`:f.value;
-      rows.push([f.label,val]);
+      const val=f.type==='link'?`<a href="${escHtml(f.value)}" target="_blank" rel="noopener" style="display:inline-block;padding:4px 14px;background:#1a1a2e;color:white;border-radius:5px;text-decoration:none;font-size:0.8rem;font-weight:600;">קישור ↗</a>`:escHtml(f.value);
+      rows.push([escHtml(f.label),val]);
     });
   }
   document.getElementById('hallModalFields').innerHTML=rows.map(([l,v])=>`<div class="hall-field-row"><span class="hall-field-label">${l}:</span><span class="hall-field-value">${v}</span></div>`).join('');
