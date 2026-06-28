@@ -1069,60 +1069,84 @@ function loadSettings(){
     const mkLayer=()=>{const d=document.createElement('div');d.className='slide-layer';banner.prepend(d);return d;};
     const layA=mkLayer(),layB=mkLayer();
     const preload=url=>{const i=new Image();i.src=url;};
-    let _si=0,_active=layA,_next=layB,_alive=true;
+    let _si=0,_active=layA,_next=layB,_alive=true,_ai=0;
     const ANIM=1200;
-    const _anim=s.slideAnimation||'slide';
-    const EASE={'slide':'cubic-bezier(0.77,0,0.18,1)','slide-down':'cubic-bezier(0.4,0,0.2,1)','fade':'cubic-bezier(0.4,0,0.2,1)','zoom-fade':'cubic-bezier(0.4,0,0.2,1)','bloom':'cubic-bezier(0.4,0,0.2,1)'}[_anim]||'cubic-bezier(0.4,0,0.2,1)';
+    const _animMode=s.slideAnimation||'slide';
+    // cycle mode: pick from list each transition
+    let _cycleList=[];
+    if(_animMode==='cycle'){try{_cycleList=JSON.parse(s.slideAnimations||'[]');}catch(e){}}
+    if(!_cycleList.length) _cycleList=['slide','fade','zoom-fade','bloom','drift','lens'];
+    const E_SMOOTH='cubic-bezier(0.4,0,0.2,1)';
+    const E_SLIDE='cubic-bezier(0.77,0,0.18,1)';
     window._slideshowCancel=()=>{_alive=false;};
+    // apply a single named animation between _active (current) and _next (incoming)
+    const applyAnim=(a)=>{
+      const T=(prop,ms,ease)=>`${prop} ${ms}ms ${ease}`;
+      const TF=(ms,ease)=>T('transform',ms,ease);
+      const OP=(ms,ease)=>T('opacity',ms,ease);
+      if(a==='slide'){
+        _next.style.transition=TF(ANIM,E_SLIDE); _active.style.transition=TF(ANIM,E_SLIDE);
+        _next.style.transform='translateX(0)'; _active.style.transform='translateX(100%)';
+      } else if(a==='slide-right'){
+        _next.style.transition=TF(ANIM,E_SLIDE); _active.style.transition=TF(ANIM,E_SLIDE);
+        _next.style.transform='translateX(0)'; _active.style.transform='translateX(-100%)';
+      } else if(a==='slide-down'){
+        _next.style.transition=TF(ANIM,E_SMOOTH); _active.style.transition=TF(ANIM,E_SMOOTH);
+        _next.style.transform='translateY(0)'; _active.style.transform='translateY(100%)';
+      } else if(a==='slide-up'){
+        _next.style.transition=TF(ANIM,E_SMOOTH); _active.style.transition=TF(ANIM,E_SMOOTH);
+        _next.style.transform='translateY(0)'; _active.style.transform='translateY(-100%)';
+      } else if(a==='fade'){
+        _next.style.transition=OP(ANIM,E_SMOOTH); _active.style.transition=OP(ANIM,E_SMOOTH);
+        _next.style.opacity='1'; _active.style.opacity='0';
+      } else if(a==='zoom-fade'){
+        _next.style.transition=`${OP(ANIM,E_SMOOTH)},${TF(ANIM,E_SMOOTH)}`; _active.style.transition=OP(ANIM,E_SMOOTH);
+        _next.style.opacity='1'; _next.style.transform='scale(1)'; _active.style.opacity='0';
+      } else if(a==='bloom'){
+        _next.style.transition=`${OP(ANIM,E_SMOOTH)},${TF(ANIM,E_SMOOTH)}`; _active.style.transition=`${OP(ANIM,E_SMOOTH)},${TF(ANIM,E_SMOOTH)}`;
+        _next.style.opacity='1'; _next.style.transform='scale(1)'; _active.style.opacity='0'; _active.style.transform='scale(1.06)';
+      } else if(a==='drift'){
+        _next.style.transition=`${OP(ANIM,E_SMOOTH)},${TF(ANIM,E_SMOOTH)}`; _active.style.transition=`${OP(ANIM,E_SMOOTH)},${TF(ANIM,E_SMOOTH)}`;
+        _next.style.opacity='1'; _next.style.transform='translateX(0)'; _active.style.opacity='0'; _active.style.transform='translateX(-4%)';
+      } else if(a==='lens'){
+        _next.style.transition=`${OP(ANIM,E_SMOOTH)},${TF(ANIM,E_SMOOTH)}`; _active.style.transition=`${OP(ANIM,E_SMOOTH)},${TF(ANIM,E_SMOOTH)}`;
+        _next.style.opacity='1'; _next.style.transform='scale(1)'; _active.style.opacity='0'; _active.style.transform='scale(0.93)';
+      } else if(a==='push'){
+        // next pushes current out: they move together
+        _next.style.transition=TF(ANIM,E_SLIDE); _active.style.transition=TF(ANIM,E_SLIDE);
+        _next.style.transform='translateX(0)'; _active.style.transform='translateX(60%)';
+      }
+    };
+    // set initial hidden position for _next based on animation
+    const initNext=(a)=>{
+      _next.style.transition='none'; _next.style.opacity='1'; _next.style.transform='translateX(0) scale(1)';
+      if(a==='slide') _next.style.transform='translateX(-100%)';
+      else if(a==='slide-right') _next.style.transform='translateX(100%)';
+      else if(a==='slide-down') _next.style.transform='translateY(-100%)';
+      else if(a==='slide-up') _next.style.transform='translateY(100%)';
+      else if(a==='fade'||a==='zoom-fade'||a==='lens') { _next.style.opacity='0'; }
+      else if(a==='zoom-fade') { _next.style.transform='scale(1.08)'; _next.style.opacity='0'; }
+      else if(a==='bloom') { _next.style.transform='scale(0.94)'; _next.style.opacity='0'; }
+      else if(a==='drift') { _next.style.transform='translateX(4%)'; _next.style.opacity='0'; }
+      else if(a==='lens') { _next.style.transform='scale(1.12)'; _next.style.opacity='0'; }
+      else if(a==='push') _next.style.transform='translateX(-100%)';
+    };
     const showSlide=()=>{
       if(!_alive) return;
+      const curAnim=_animMode==='cycle'?_cycleList[_ai%_cycleList.length]:_animMode;
       const sl=_slides[_si%_slides.length];
       const nx=_slides[(_si+1)%_slides.length];
-      // reset active layer
-      _active.style.transition='none';
-      _active.style.opacity='1';
-      _active.style.transform='translateX(0) scale(1)';
+      _active.style.transition='none'; _active.style.opacity='1'; _active.style.transform='translateX(0) scale(1)';
       _active.style.backgroundImage=`url('${sl.url}')`;
-      // position next layer (hidden) based on animation type
-      _next.style.transition='none';
-      if(_anim==='slide'){       _next.style.transform='translateX(-100%)'; _next.style.opacity='1'; }
-      else if(_anim==='slide-down'){ _next.style.transform='translateY(-100%)'; _next.style.opacity='1'; }
-      else if(_anim==='fade'){   _next.style.transform='scale(1)'; _next.style.opacity='0'; }
-      else if(_anim==='zoom-fade'){ _next.style.transform='scale(1.08)'; _next.style.opacity='0'; }
-      else if(_anim==='bloom'){  _next.style.transform='scale(0.94)'; _next.style.opacity='0'; }
+      initNext(curAnim);
       preload(nx.url);
-      _si++;
+      _si++; if(_animMode==='cycle') _ai++;
       setTimeout(()=>{
         if(!_alive) return;
         _next.style.backgroundImage=`url('${nx.url}')`;
         requestAnimationFrame(()=>requestAnimationFrame(()=>{
           if(!_alive) return;
-          if(_anim==='slide'){
-            _next.style.transition=`transform ${ANIM}ms ${EASE}`;
-            _active.style.transition=`transform ${ANIM}ms ${EASE}`;
-            _next.style.transform='translateX(0)';
-            _active.style.transform='translateX(100%)';
-          } else if(_anim==='slide-down'){
-            _next.style.transition=`transform ${ANIM}ms ${EASE}`;
-            _active.style.transition=`transform ${ANIM}ms ${EASE}`;
-            _next.style.transform='translateY(0)';
-            _active.style.transform='translateY(100%)';
-          } else if(_anim==='fade'){
-            _next.style.transition=`opacity ${ANIM}ms ${EASE}`;
-            _active.style.transition=`opacity ${ANIM}ms ${EASE}`;
-            _next.style.opacity='1';
-            _active.style.opacity='0';
-          } else if(_anim==='zoom-fade'){
-            _next.style.transition=`opacity ${ANIM}ms ${EASE},transform ${ANIM}ms ${EASE}`;
-            _active.style.transition=`opacity ${ANIM}ms ${EASE}`;
-            _next.style.opacity='1'; _next.style.transform='scale(1)';
-            _active.style.opacity='0';
-          } else if(_anim==='bloom'){
-            _next.style.transition=`opacity ${ANIM}ms ${EASE},transform ${ANIM}ms ${EASE}`;
-            _active.style.transition=`opacity ${ANIM}ms ${EASE},transform ${ANIM}ms ${EASE}`;
-            _next.style.opacity='1'; _next.style.transform='scale(1)';
-            _active.style.opacity='0'; _active.style.transform='scale(1.06)';
-          }
+          applyAnim(curAnim);
           setTimeout(()=>{if(!_alive)return;[_active,_next]=[_next,_active];showSlide();},ANIM);
         }));
       },(sl.duration||5)*1000);

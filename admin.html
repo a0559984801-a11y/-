@@ -229,13 +229,34 @@ textarea{resize:vertical;min-height:70px;}
         <div id="logoSlidesList"></div>
         <button type="button" onclick="addLogoSlide()" id="addSlideBtn" style="padding:7px 16px;background:#e8f4e8;border:1px solid #b2d8b2;border-radius:7px;cursor:pointer;font-family:Assistant;font-size:0.85rem;color:#2a7a2a;margin-top:4px;">+ הוסף תמונה</button>
         <label style="margin-top:14px;">הנפשת מעבר בין תמונות</label>
-        <select id="slideAnimation" style="padding:7px 10px;border:1px solid #ddd;border-radius:6px;font-family:Assistant;font-size:0.88rem;width:100%;margin-bottom:4px;">
+        <select id="slideAnimation" onchange="toggleCycleOptions()" style="padding:7px 10px;border:1px solid #ddd;border-radius:6px;font-family:Assistant;font-size:0.88rem;width:100%;margin-bottom:6px;">
           <option value="slide">החלקה רכה ←</option>
+          <option value="slide-right">החלקה רכה →</option>
           <option value="slide-down">גלישה מלמעלה ↓</option>
+          <option value="slide-up">גלישה מלמטה ↑</option>
           <option value="fade">דהייה עדינה</option>
           <option value="zoom-fade">זום ודהייה</option>
           <option value="bloom">פריחה</option>
+          <option value="drift">נסיחה עדינה</option>
+          <option value="lens">עדשה</option>
+          <option value="push">דחיפה</option>
+          <option value="cycle">🔀 מחזור הנפשות (בחר למטה)</option>
         </select>
+        <div id="cycleOptions" style="display:none;background:#f8f8f8;border:1px solid #e0e0e0;border-radius:8px;padding:10px 12px;margin-bottom:6px;">
+          <div style="font-size:0.78rem;color:#666;margin-bottom:8px;">בחר אילו הנפשות ייכללו במחזור:</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;">
+            <label style="display:flex;align-items:center;gap:5px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;"><input type="checkbox" class="cycle-cb" value="slide" checked> החלקה ←</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;"><input type="checkbox" class="cycle-cb" value="slide-right"> החלקה →</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;"><input type="checkbox" class="cycle-cb" value="slide-down"> גלישה ↓</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;"><input type="checkbox" class="cycle-cb" value="slide-up"> גלישה ↑</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;"><input type="checkbox" class="cycle-cb" value="fade" checked> דהייה</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;"><input type="checkbox" class="cycle-cb" value="zoom-fade" checked> זום ודהייה</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;"><input type="checkbox" class="cycle-cb" value="bloom" checked> פריחה</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;"><input type="checkbox" class="cycle-cb" value="drift"> נסיחה</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;"><input type="checkbox" class="cycle-cb" value="lens"> עדשה</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;"><input type="checkbox" class="cycle-cb" value="push"> דחיפה</label>
+          </div>
+        </div>
         <label>צבע רקע סרגל ניווט</label>
         <input type="color" id="headerColor" value="#1a1a2e"/>
         <button class="btn-save" onclick="saveLogo()">💾 שמור לשרת</button>
@@ -560,6 +581,11 @@ async function fetchAuthed(action){
   return res.json();
 }
 
+function toggleCycleOptions(){
+  const v=document.getElementById('slideAnimation').value;
+  document.getElementById('cycleOptions').style.display=v==='cycle'?'block':'none';
+}
+
 // ===== SCRIPTS / SYNC tab =====
 async function runSync(target, btn){
   const orig=btn.textContent; btn.disabled=true; btn.textContent='⏳ מריץ...';
@@ -610,6 +636,8 @@ function applySettings(){
   document.getElementById('heroSubtitle').value=settings.heroSubtitle||'';
   document.getElementById('headerColor').value=settings.headerColor||'#1a1a2e';
   document.getElementById('slideAnimation').value=settings.slideAnimation||'slide';
+  try{const sl=JSON.parse(settings.slideAnimations||'[]');if(sl.length){document.querySelectorAll('.cycle-cb').forEach(cb=>{cb.checked=sl.includes(cb.value);});}}catch(e){}
+  toggleCycleOptions();
   try{ logoSlides=JSON.parse(settings.logoSlides||'[]'); }catch(e){ logoSlides=[]; }
   if(!logoSlides.length&&settings.logo) logoSlides=[{url:settings.logo,duration:5}];
   renderLogoSlides();
@@ -978,7 +1006,8 @@ async function saveLogo(){
     logo: slides.length?slides[0].url:'',
     logoSlides: JSON.stringify(slides),
     headerColor: document.getElementById('headerColor').value,
-    slideAnimation: document.getElementById('slideAnimation').value
+    slideAnimation: document.getElementById('slideAnimation').value,
+    slideAnimations: JSON.stringify([...document.querySelectorAll('.cycle-cb:checked')].map(c=>c.value))
   });
   showOk('logoOk');
 }
@@ -1080,6 +1109,7 @@ async function saveAll(){
       logoSlides: JSON.stringify(_validSlides),
       headerColor: document.getElementById('headerColor').value,
       slideAnimation: document.getElementById('slideAnimation').value,
+      slideAnimations: JSON.stringify([...document.querySelectorAll('.cycle-cb:checked')].map(c=>c.value)),
       contactEmail: document.getElementById('contactEmail').value,
       hallOrder: JSON.stringify(hallOrder),
       hiddenDays: JSON.stringify(hiddenDays),
