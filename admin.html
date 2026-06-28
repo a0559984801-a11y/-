@@ -155,6 +155,7 @@ textarea{resize:vertical;min-height:70px;}
     <button class="nav-btn" onclick="show('hidden-dates',event)">📅 תאריכים מוסתרים</button>
     <button class="nav-btn" onclick="show('contact',event)">📬 יצירת קשר</button>
     <button class="nav-btn" onclick="show('security',event)">🔑 סיסמה</button>
+    <button class="nav-btn" onclick="show('sync',event)">🔄 סקריפטים</button>
     <div style="border-top:1px solid #2a2a4e;margin:12px 0;"></div>
     <button class="nav-btn" id="saveAllBtn" onclick="saveAll()" style="background:#e8b86d;color:#1a1a2e;font-weight:700;text-align:center;">💾 שמור הכל</button>
     <div id="saveAllOk" style="display:none;color:#2ecc71;font-size:0.72rem;text-align:center;margin-top:6px;">✓ הכל נשמר!</div>
@@ -359,6 +360,32 @@ textarea{resize:vertical;min-height:70px;}
       </div>
     </div>
 
+    <!-- SCRIPTS / SYNC -->
+    <div class="panel" id="panel-sync">
+      <h2>🔄 הרצת סקריפטים</h2>
+      <p style="color:#666;font-size:0.85rem;margin-bottom:14px;">הרצה חד-פעמית מיידית. אחרת כל סקריפט רץ אוטומטית בתזמון שלו. שינויים ששמרת בניהול יופיעו באתר רק אחרי הרצה (יומית או כאן).</p>
+      <div class="card">
+        <b>זמינות</b> <span style="color:#888;font-size:0.82rem;">— בשינוי בגיליון / כל 15 דק'</span>
+        <div class="sync-last" id="last-availability" style="font-size:0.78rem;color:#999;margin:4px 0;"></div>
+        <button class="btn-save" onclick="runSync('availability',this)">▶ הרץ עכשיו</button>
+      </div>
+      <div class="card">
+        <b>הגדרות</b> <span style="color:#888;font-size:0.82rem;">— פעם ביום</span>
+        <div class="sync-last" id="last-settings" style="font-size:0.78rem;color:#999;margin:4px 0;"></div>
+        <button class="btn-save" onclick="runSync('settings',this)">▶ הרץ עכשיו</button>
+      </div>
+      <div class="card">
+        <b>פרטי אולמות</b> <span style="color:#888;font-size:0.82rem;">— פעם ביום</span>
+        <div class="sync-last" id="last-halls" style="font-size:0.78rem;color:#999;margin:4px 0;"></div>
+        <button class="btn-save" onclick="runSync('halls',this)">▶ הרץ עכשיו</button>
+      </div>
+      <div class="card">
+        <b>נתוני גלישה</b> <span style="color:#888;font-size:0.82rem;">— פעם ביום</span>
+        <div class="sync-last" id="last-analytics" style="font-size:0.78rem;color:#999;margin:4px 0;"></div>
+        <button class="btn-save" onclick="runSync('analytics',this)">▶ הרץ עכשיו</button>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -491,6 +518,7 @@ function show(name,e){
   if(name==='order') renderOrderList();
   if(name==='stats') loadStats();
   if(name==='hidden-dates') renderHideCalendar();
+  if(name==='sync') loadSyncStatus();
 }
 function showOk(id){const el=document.getElementById(id);el.style.display='block';setTimeout(()=>el.style.display='none',2500);}
 
@@ -522,6 +550,28 @@ async function fetchAuthed(action){
     headers:{'Content-Type':'text/plain'}
   });
   return res.json();
+}
+
+// ===== SCRIPTS / SYNC tab =====
+async function runSync(target, btn){
+  const orig=btn.textContent; btn.disabled=true; btn.textContent='⏳ מריץ...';
+  try{
+    const res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({action:'runSync', target, authPass:_adminPass})});
+    const d=await res.json();
+    btn.textContent=d.success?'✓ הורץ':'❌ שגיאה';
+    if(d.success) loadSyncStatus();
+  }catch(e){ btn.textContent='❌ שגיאה'; }
+  setTimeout(()=>{ btn.textContent=orig; btn.disabled=false; }, 2500);
+}
+async function loadSyncStatus(){
+  try{
+    const d=await fetchAuthed('getSyncStatus');
+    ['availability','settings','halls','analytics'].forEach(k=>{
+      const el=document.getElementById('last-'+k); if(!el) return;
+      el.textContent=d[k]?('הורץ לאחרונה: '+new Date(d[k]).toLocaleString('he-IL')):'טרם הורץ';
+    });
+  }catch(e){}
 }
 
 // Load all from server
