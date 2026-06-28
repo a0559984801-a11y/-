@@ -1063,14 +1063,17 @@ function loadSettings(){
   if(!_slides.length&&s.logo)_slides=[{url:s.logo,duration:5}];
   if(_slides.length){
     const banner=document.getElementById('heroBanner');
-    // create two layers
+    // Cancel any previous slideshow and remove its layers (loadSettings can be called twice: once from cache, once from network)
+    if(window._slideshowCancel) window._slideshowCancel();
+    banner.querySelectorAll('.slide-layer').forEach(el=>el.remove());
     const mkLayer=()=>{const d=document.createElement('div');d.className='slide-layer';banner.prepend(d);return d;};
     const layA=mkLayer(),layB=mkLayer();
-    // preload next image
     const preload=url=>{const i=new Image();i.src=url;};
-    let _si=0,_active=layA,_next=layB;
+    let _si=0,_active=layA,_next=layB,_alive=true;
     const ANIM=1100;
+    window._slideshowCancel=()=>{_alive=false;};
     const showSlide=()=>{
+      if(!_alive) return;
       const sl=_slides[_si%_slides.length];
       const nx=_slides[(_si+1)%_slides.length];
       _active.style.transition='none';
@@ -1080,15 +1083,16 @@ function loadSettings(){
       _next.style.transform='translateX(-100%)';
       preload(nx.url);
       _si++;
-      // after duration, slide in next
       setTimeout(()=>{
+        if(!_alive) return;
         _next.style.backgroundImage=`url('${nx.url}')`;
         requestAnimationFrame(()=>requestAnimationFrame(()=>{
+          if(!_alive) return;
           _next.style.transition=`transform ${ANIM}ms cubic-bezier(0.77,0,0.18,1)`;
           _active.style.transition=`transform ${ANIM}ms cubic-bezier(0.77,0,0.18,1)`;
           _next.style.transform='translateX(0)';
           _active.style.transform='translateX(100%)';
-          setTimeout(()=>{[_active,_next]=[_next,_active];showSlide();},ANIM);
+          setTimeout(()=>{if(!_alive)return;[_active,_next]=[_next,_active];showSlide();},ANIM);
         }));
       },(sl.duration||5)*1000);
     };
