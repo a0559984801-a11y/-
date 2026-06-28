@@ -228,6 +228,14 @@ textarea{resize:vertical;min-height:70px;}
         <p style="font-size:0.72rem;color:#999;margin-bottom:10px">התמונות יחליפו זו את זו בלופ אינסופי. להעלאת תמונה: <a href="https://cloudinary.com" target="_blank">cloudinary.com</a> ← העלה ← העתק URL</p>
         <div id="logoSlidesList"></div>
         <button type="button" onclick="addLogoSlide()" id="addSlideBtn" style="padding:7px 16px;background:#e8f4e8;border:1px solid #b2d8b2;border-radius:7px;cursor:pointer;font-family:Assistant;font-size:0.85rem;color:#2a7a2a;margin-top:4px;">+ הוסף תמונה</button>
+        <label style="margin-top:14px;">הנפשת מעבר בין תמונות</label>
+        <select id="slideAnimation" style="padding:7px 10px;border:1px solid #ddd;border-radius:6px;font-family:Assistant;font-size:0.88rem;width:100%;margin-bottom:4px;">
+          <option value="slide">החלקה רכה ←</option>
+          <option value="slide-down">גלישה מלמעלה ↓</option>
+          <option value="fade">דהייה עדינה</option>
+          <option value="zoom-fade">זום ודהייה</option>
+          <option value="bloom">פריחה</option>
+        </select>
         <label>צבע רקע סרגל ניווט</label>
         <input type="color" id="headerColor" value="#1a1a2e"/>
         <button class="btn-save" onclick="saveLogo()">💾 שמור לשרת</button>
@@ -601,6 +609,7 @@ function applySettings(){
   document.getElementById('siteName').value=settings.siteName||'';
   document.getElementById('heroSubtitle').value=settings.heroSubtitle||'';
   document.getElementById('headerColor').value=settings.headerColor||'#1a1a2e';
+  document.getElementById('slideAnimation').value=settings.slideAnimation||'slide';
   try{ logoSlides=JSON.parse(settings.logoSlides||'[]'); }catch(e){ logoSlides=[]; }
   if(!logoSlides.length&&settings.logo) logoSlides=[{url:settings.logo,duration:5}];
   renderLogoSlides();
@@ -968,7 +977,8 @@ async function saveLogo(){
     heroSubtitle: document.getElementById('heroSubtitle').value,
     logo: slides.length?slides[0].url:'',
     logoSlides: JSON.stringify(slides),
-    headerColor: document.getElementById('headerColor').value
+    headerColor: document.getElementById('headerColor').value,
+    slideAnimation: document.getElementById('slideAnimation').value
   });
   showOk('logoOk');
 }
@@ -1069,6 +1079,7 @@ async function saveAll(){
       logo: _validSlides.length?_validSlides[0].url:'',
       logoSlides: JSON.stringify(_validSlides),
       headerColor: document.getElementById('headerColor').value,
+      slideAnimation: document.getElementById('slideAnimation').value,
       contactEmail: document.getElementById('contactEmail').value,
       hallOrder: JSON.stringify(hallOrder),
       hiddenDays: JSON.stringify(hiddenDays),
