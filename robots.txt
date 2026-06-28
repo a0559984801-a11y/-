@@ -1,5 +1,4 @@
 User-agent: *
-Allow: /
-Disallow: /admin.html
+Disallow:
 
 Sitemap: https://a0559984801-a11y.github.io/-/sitemap.xml

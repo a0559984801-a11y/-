@@ -2,6 +2,8 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https://res.cloudinary.com https://a0559984801-a11y.github.io data: blob:; connect-src 'self' https://script.google.com; frame-ancestors 'none'; object-src 'none'; base-uri 'self';">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1137,23 +1139,18 @@ async function changePass(){
 // ===== PASSWORD GATE =====
 const API_URL_GATE='https://script.google.com/macros/s/AKfycbylfK2AoCFcDCpvRWCS6DB3ciPL0VvzsrlNhtmhOxIuxW7v5LmI6Sic5vTvY37gae3mWQ/exec';
 
-// Verify a password via POST (text/plain = no CORS preflight). Sending it in the body
-// instead of the URL keeps it out of Google's execution logs and browser history.
-async function verifyPass(pass){
-  const res=await fetch(API_URL_GATE,{
-    method:'POST',
-    body:JSON.stringify({action:'checkPassword',pass}),
-    headers:{'Content-Type':'text/plain'}
-  });
-  const data=await res.json();
-  return !!data.success;
-}
-
 async function checkGate(){
   const pass=document.getElementById('gatePass').value;
   if(!pass) return;
   try{
-    if(await verifyPass(pass)){
+    // Send password check via POST (body, not URL)
+    const res=await fetch(API_URL_GATE,{
+      method:'POST',
+      body:JSON.stringify({action:'checkPassword',pass}),
+      headers:{'Content-Type':'text/plain'}
+    });
+    const data=await res.json();
+    if(data.success){
       _adminPass=pass;
       document.getElementById('passwordGate').style.display='none';
       document.getElementById('adminContent').style.display='block';
