@@ -213,20 +213,11 @@ header h1{font-size:1.1rem;font-weight:700;}
 const API_URL='https://script.google.com/macros/s/AKfycbylfK2AoCFcDCpvRWCS6DB3ciPL0VvzsrlNhtmhOxIuxW7v5LmI6Sic5vTvY37gae3mWQ/exec';
 const DEFAULT_IMG='https://res.cloudinary.com/df8cqjeu6/image/upload/v1781481615/Gemini_Generated_Image_lhtutylhtutylhtu_kddlrl.png';
 function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-// Send a tracking "beacon" (logVisit/logHallView) and retry once if it fails.
-// Apps Script returns 503 when too many requests hit the deployment at the
-// same moment (e.g. logVisit firing right alongside the halls/settings data
-// fetch). A single delayed retry with jitter clears almost all of these.
-function sendBeacon(url,attempt){
-  attempt=attempt||1;
-  const img=new Image();
-  img.onerror=function(){
-    if(attempt<2){
-      const delay=1200+Math.random()*1500;
-      setTimeout(()=>sendBeacon(url,attempt+1),delay);
-    }
-  };
-  img.src=url;
+function sendBeacon(url){
+  // fetch עם keepalive — לא חוסם את הדף, עובד גם בעת ניווט החוצה.
+  // לא משתמשים ב-<img> כי onerror תמיד נורה על תגובת JSON (לא תמונה),
+  // מה שגרם ל-retry אוטומטי וכפילות ברשומות.
+  try{fetch(url,{method:'GET',keepalive:true,cache:'no-store'});}catch(e){}
 }
 // Log visit to Google Sheets (fire and forget, never blocks the page)
 // A randomized delay staggers this away from the page's own data fetch
