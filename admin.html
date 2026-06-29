@@ -313,6 +313,21 @@ textarea{resize:vertical;min-height:70px;}
         <button class="btn-add-ad" onclick="addAd('Side')">+ הוסף פרסומת</button>
       </div>
 
+      <!-- POPUP -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <p style="font-weight:700;font-size:0.88rem">🪟 פרסומת קופצת (Popup)</p>
+          <div class="toggle-row" style="margin:0">
+            <span style="font-size:0.82rem">הצג</span>
+            <div class="toggle" id="tgPopup" onclick="tgAd('Popup')" style="background:#2ecc71"><div class="toggle-knob" id="knPopup" style="right:2px"></div></div>
+            <span id="stPopup" style="font-size:0.78rem;color:#2ecc71">פעיל</span>
+          </div>
+        </div>
+        <p style="font-size:0.78rem;color:#888;margin-bottom:10px">פרסומת שקופצת מעל הדף לאחר טעינה. רק הפרסומת הראשונה תוצג.</p>
+        <div id="adListPopup"></div>
+        <button class="btn-add-ad" onclick="addAd('Popup')">+ הוסף פרסומת קופצת</button>
+      </div>
+
       <button class="btn-save" onclick="saveAds()">💾 שמור הכל לשרת</button>
       <div class="ok" id="adOk">✓ נשמר!</div>
     </div>
@@ -538,8 +553,8 @@ function renderBarChart(containerId,data){
 }
 
 let settings={}, halls=[], hallOrder=[], hiddenDays=[];
-let adState={Top:true,Bottom:true,Side:true};
-let adItems={Top:[],Bottom:[],Side:[]};
+let adState={Top:true,Bottom:true,Side:true,Popup:true};
+let adItems={Top:[],Bottom:[],Side:[],Popup:[]};
 let logoSlides=[];
 
 const _panels=document.querySelectorAll('.panel');
@@ -651,7 +666,7 @@ function applySettings(){
   hiddenDays.forEach(i=>{ const cb=document.getElementById('hideDay'+i); if(cb) cb.checked=true; });
   adminHiddenDates=new Set();
   try{ JSON.parse(settings.hiddenDates||'[]').forEach(k=>adminHiddenDates.add(k)); }catch(e){}
-  ['Top','Bottom','Side'].forEach(pos=>{
+  ['Top','Bottom','Side','Popup'].forEach(pos=>{
     const val=settings['showAd'+pos]; const show=val!==false&&val!=='false'&&val!=='FALSE';
     adState[pos]=show;
     updateToggle(pos);
@@ -718,6 +733,14 @@ function renderAdList(pos){
           <input type="number" min="1" max="300" value="${ad.duration||5}" oninput="upAd('${pos}',${i},'duration',+this.value)"/>
           <span>שניות</span>
         </div>
+        ${pos==='Popup'?`<div class="ad-duration-row" style="margin-top:6px">
+          <label>⏳ עיכוב לפני הצגה:</label>
+          <input type="number" min="0" max="60" value="${ad.delay||3}" oninput="upAd('${pos}',${i},'delay',+this.value)"/>
+          <span>שניות</span>
+        </div>`:''}
+        ${pos==='Popup'?`<p style="font-size:0.75rem;color:#888;margin-top:6px">💡 הפרסומת תופיע לאחר העיכוב שהוגדר. ניתן ללחוץ על הרקע או על ✕ לסגירה.</p>`:''}
+        ${pos==='Popup'?`<p style="font-size:0.75rem;color:#888;margin-top:2px">⚠️ רק הפרסומת הראשונה ברשימה תוצג כפופאפ.</p>`:''}
+
       </div>
     </div>
   `).join('');
@@ -791,7 +814,7 @@ function delAdMedia(pos,adIdx,mediaIdx){
 }
 
 function addAd(pos){
-  adItems[pos].push({name:'',text:'',link:'',img:'',vid:'',duration:5,gallery:[]});
+  adItems[pos].push({name:'',text:'',link:'',img:'',imgMobile:'',vid:'',duration:5,gallery:[],delay:3});
   renderAdList(pos);
   toggleAd(pos,adItems[pos].length-1);
 }
@@ -810,7 +833,7 @@ function escHtml(s){return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replac
 
 async function saveAds(){
   const payload={};
-  ['Top','Bottom','Side'].forEach(pos=>{
+  ['Top','Bottom','Side','Popup'].forEach(pos=>{
     payload['showAd'+pos]=adState[pos]?'true':'false';
     payload['adItems'+pos]=JSON.stringify(adItems[pos]);
     // Keep legacy fields for backwards compat

@@ -35,7 +35,7 @@ gtag('consent','default',{'analytics_storage':'denied','ad_storage':'denied'});
 @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Rubik',sans-serif;background:#f7f5f0;color:#1a1a1a;min-height:100vh;display:flex;flex-direction:column;font-weight:400;}
-body.has-bottom-ad{padding-bottom:2.5cm;}
+body.has-bottom-ad{padding-bottom:8vh;}
 
 /* Hero Banner */
 #heroBanner{width:100%;height:55vh;min-height:320px;background:linear-gradient(135deg,#1a1a2e 0%,#3a3a5e 50%,#1a1a2e 100%);background-size:cover;background-position:center;color:white;padding:40px 20px;text-align:center;flex-shrink:0;display:flex;align-items:center;justify-content:center;flex-direction:column;position:relative;overflow:hidden;}
@@ -89,7 +89,7 @@ header h1{font-size:1.1rem;font-weight:700;}
   box-shadow:-4px 0 20px rgba(0,0,0,0.25);
   transition:right 0.3s ease;
 }
-body.has-bottom-ad .sidebar{bottom:2.5cm;}
+body.has-bottom-ad .sidebar{bottom:8vh;}
 .sidebar.open{right:0;}
 .sidebar-title{font-size:0.82rem;font-weight:700;color:#1a1a2e;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #1a1a2e;}
 .filter-group{margin-bottom:11px;position:relative;}
@@ -143,13 +143,13 @@ body.has-bottom-ad .sidebar{bottom:2.5cm;}
 .btn-admin:hover{background:#e8e8e8;}
 
 /* AD SIDEBAR */
-#adSidebar{width:130px;background:#e8e4dc;display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:#999;flex-shrink:0;border-right:1px solid #d5d0c8;position:sticky;top:56px;height:calc(100vh - 56px);align-self:flex-start;overflow:hidden;}
-body.has-bottom-ad #adSidebar{height:calc(100vh - 56px - 2.5cm);}
+#adSidebar{width:15vw;background:#e8e4dc;display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:#999;flex-shrink:0;border-right:1px solid #d5d0c8;position:sticky;top:56px;height:calc(100vh - 56px);align-self:flex-start;overflow:hidden;}
+body.has-bottom-ad #adSidebar{height:calc(100vh - 56px - 8vh);}
 #adSidebar img,#adSidebar video{width:100%;height:100%;object-fit:cover;}
 
 /* Table area */
 .table-area{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:8px;height:calc(100vh - 56px);}
-body.has-bottom-ad .table-area{height:calc(100vh - 56px - 2.5cm);}
+body.has-bottom-ad .table-area{height:calc(100vh - 56px - 8vh);}
 
 .view-toggle{display:none;gap:8px;margin-bottom:8px;align-items:center;flex-shrink:0;}
 .view-btn{padding:5px 12px;border:1px solid #ddd;border-radius:5px;background:white;cursor:pointer;font-family:'Rubik',sans-serif;font-size:0.76rem;color:#555;}
@@ -157,7 +157,7 @@ body.has-bottom-ad .table-area{height:calc(100vh - 56px - 2.5cm);}
 .view-note{font-size:0.72rem;color:#999;}
 
 .table-scroll{overflow:auto;flex:1;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,0.07);}
-body.has-bottom-ad .table-scroll{padding-bottom:2.5cm;}
+body.has-bottom-ad .table-scroll{padding-bottom:8vh;}
 table{border-collapse:collapse;background:#d4cdc4;font-size:0.68rem;width:max-content;min-width:100%;border:2px solid #b5ada2;}
 thead{position:sticky;top:0;z-index:10;}
 thead tr{background:#1a1a2e;color:white;}
@@ -176,7 +176,7 @@ td.date-cell.selected{background:#1a1a2e;color:#e8b86d;}
 
 /* Calendar */
 .calendar-view{display:none;overflow-y:auto;flex:1;}
-body.has-bottom-ad .calendar-view{padding-bottom:2.5cm;}
+body.has-bottom-ad .calendar-view{padding-bottom:8vh;}
 .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
 .cal-nav{padding:5px 12px;background:#1a1a2e;color:white;border:none;border-radius:5px;cursor:pointer;font-family:'Rubik',sans-serif;font-size:0.8rem;}
 .cal-title{font-size:0.9rem;font-weight:700;color:#1a1a2e;}
@@ -192,14 +192,14 @@ body.has-bottom-ad .calendar-view{padding-bottom:2.5cm;}
 .error{text-align:center;padding:30px;color:#e74c3c;font-size:0.85rem;}
 
 /* BOTTOM AD */
-#adBottom{position:fixed;bottom:0;right:0;left:0;height:2.5cm;background:#1a1a2e;display:none;align-items:center;justify-content:center;font-size:0.85rem;color:#e8b86d;font-weight:600;border-top:2px solid #e8b86d;z-index:500;overflow:hidden;}
+#adBottom{position:fixed;bottom:0;right:0;left:0;height:8vh;background:#1a1a2e;display:none;align-items:center;justify-content:center;font-size:0.85rem;color:#e8b86d;font-weight:600;border-top:2px solid #e8b86d;z-index:500;overflow:hidden;}
 #adBottomContent{width:100%;height:100%;display:flex;align-items:center;justify-content:center;text-decoration:none;cursor:pointer;}
 #adBottomContent img,#adBottomContent video{width:100%;height:100%;object-fit:cover;}
 .ad-bottom-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;background:rgba(0,0,0,0.6);padding:8px 16px;border-radius:4px;color:white;pointer-events:none;text-align:center;font-size:1rem;font-weight:700;}
 #adSidebar a.ad-link{display:block;width:100%;height:100%;}
 #adSidebar a.ad-link img,#adSidebar a.ad-link video{width:100%;height:100%;object-fit:cover;}
 
-.ad-bottom-spacer{height:2.5cm;flex-shrink:0;}
+.ad-bottom-spacer{height:8vh;flex-shrink:0;}
 
 /* Date Tooltip */
 #dateTooltip{position:fixed;display:none;background:white;color:#1a1a2e;padding:10px 16px;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.2);font-size:0.82rem;font-weight:600;z-index:2000;pointer-events:none;border:1px solid #e0ddd6;white-space:nowrap;}
@@ -257,21 +257,21 @@ th.hall-name-th:hover{background:#2a2a4e;}
   #adSidebar{display:none !important;}
   .legend{display:none;}
   .table-area{height:calc(100vh - 56px);}
-  body.has-bottom-ad .table-area{height:calc(100vh - 56px - 2.5cm);}
+  body.has-bottom-ad .table-area{height:calc(100vh - 56px - 8vh);}
   .hamburger-btn{display:inline-flex;}
   .hamburger-label{display:inline-block;}
   #siteHeader{justify-content:space-evenly;padding:8px 6px;}
   .header-right,.header-left{gap:0;}
   .btn-halls,.btn-contact,.hamburger-btn{font-size:0.72rem;padding:6px 8px;}
-  #adBottom{height:min(2.5cm,15vh);}
+  #adBottom{height:min(8vh,15vh);}
   #adBottomContent img,#adBottomContent video{object-fit:contain;}
-  body.has-bottom-ad{padding-bottom:min(2.5cm,15vh);}
-  body.has-bottom-ad .sidebar{bottom:min(2.5cm,15vh);}
-  body.has-bottom-ad .table-area{height:calc(100vh - 56px - min(2.5cm,15vh));}
-  body.has-bottom-ad .table-scroll{padding-bottom:min(2.5cm,15vh);}
-  body.has-bottom-ad .calendar-view{padding-bottom:min(2.5cm,15vh);}
-  .ad-bottom-spacer{height:min(2.5cm,15vh);}
-  body.has-bottom-ad #adSidebar{height:calc(100vh - 56px - min(2.5cm,15vh));}
+  body.has-bottom-ad{padding-bottom:min(8vh,15vh);}
+  body.has-bottom-ad .sidebar{bottom:min(8vh,15vh);}
+  body.has-bottom-ad .table-area{height:calc(100vh - 56px - min(8vh,15vh));}
+  body.has-bottom-ad .table-scroll{padding-bottom:min(8vh,15vh);}
+  body.has-bottom-ad .calendar-view{padding-bottom:min(8vh,15vh);}
+  .ad-bottom-spacer{height:min(8vh,15vh);}
+  body.has-bottom-ad #adSidebar{height:calc(100vh - 56px - min(8vh,15vh));}
 }/* Cookie consent banner */
 #cookieBanner{display:none;position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,0.55);z-index:4000;align-items:center;justify-content:center;padding:16px;}
 #cookieBanner.show{display:flex;}
@@ -449,6 +449,18 @@ th.hall-name-th:hover{background:#2a2a4e;}
 
 <!-- BOTTOM AD -->
 <div id="adBottom"><div id="adBottomContent"><span id="adContent">פרסומת</span></div></div>
+
+<!-- POPUP AD -->
+<div id="popupAdOverlay" onclick="closePopupAd()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:9999;align-items:center;justify-content:center;">
+  <div onclick="event.stopPropagation()" style="position:relative;max-width:480px;width:90%;border-radius:12px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.5);">
+    <button onclick="closePopupAd()" style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,0.55);border:none;color:white;border-radius:50%;width:34px;height:34px;font-size:1.2rem;cursor:pointer;z-index:10;line-height:1;display:flex;align-items:center;justify-content:center;">✕</button>
+    <a id="popupAdLink" href="#" target="_blank" rel="noopener noreferrer">
+      <img id="popupAdImg" src="" alt="פרסומת" style="width:100%;display:block;">
+    </a>
+    <div id="popupAdText" style="padding:10px;text-align:center;background:white;font-family:'Rubik',sans-serif;font-size:0.95rem;display:none;"></div>
+    <button onclick="closePopupAd()" style="display:block;width:100%;padding:10px;background:#f0ece4;border:none;font-family:'Rubik',sans-serif;font-size:0.88rem;cursor:pointer;color:#1a1a2e;font-weight:600;">לפרסום לחצו כאן</button>
+  </div>
+</div>
 
 <!-- Date Tooltip -->
 <div id="dateTooltip">👉 לחץ על התאריך להעברת האולמות הפנויים בתאריך זה לקדמת הטבלה</div>
@@ -1174,6 +1186,33 @@ function loadSettings(){
       if(items.length&&!startAd('Side',items)) updateSideAd(items[0]); // text-only fallback
     } else adSide.style.display='none';
   }
+  const showPopup=s.showAdPopup!=='false'&&s.showAdPopup!==false;
+  if(showPopup){
+    const popupItems=safeParse(s.adItemsPopup,[]);
+    if(popupItems.length){
+      const ad=popupItems[0];
+      const isMobile=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+      const imgUrl=(isMobile&&ad.imgMobile)?ad.imgMobile:ad.img;
+      if(imgUrl||ad.text){
+        const delay=(ad.delay||3)*1000;
+        setTimeout(()=>{
+          const overlay=document.getElementById('popupAdOverlay');
+          const img=document.getElementById('popupAdImg');
+          const lnk=document.getElementById('popupAdLink');
+          const txt=document.getElementById('popupAdText');
+          if(imgUrl){img.src=imgUrl;img.style.display='block';}else img.style.display='none';
+          if(ad.link){lnk.href=ad.link;}else lnk.removeAttribute('href');
+          if(ad.text){txt.textContent=ad.text;txt.style.display='block';}else txt.style.display='none';
+          overlay.style.display='flex';
+        },delay);
+      }
+    }
+  }
+}
+
+function closePopupAd(){
+  const el=document.getElementById('popupAdOverlay');
+  if(el) el.style.display='none';
 }
 
 let _dateTab='greg';
