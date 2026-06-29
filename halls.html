@@ -119,6 +119,9 @@ header h1{font-size:1.1rem;font-weight:700;}
 .fs-nav-btn:hover{background:rgba(255,255,255,0.4);}
 .fs-nav-btn:disabled{opacity:0.3;cursor:not-allowed;}
 .fs-counter{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.5);color:white;padding:10px 20px;border-radius:20px;font-size:0.9rem;}
+.fs-info-btn{position:absolute;bottom:40px;right:40px;background:#ffffff;color:#1a1a2e;border:none;padding:20px 44px;border-radius:50px;font-size:1.4rem;font-weight:800;cursor:pointer;font-family:'Rubik',sans-serif;box-shadow:0 8px 40px rgba(0,0,0,0.7),0 0 0 4px rgba(255,255,255,0.3);display:flex;align-items:center;gap:10px;letter-spacing:0.5px;animation:pulse-info 1.6s ease-in-out infinite;transition:transform 0.15s;}
+.fs-info-btn:hover{background:#f0ece4;transform:scale(1.08);}
+@keyframes pulse-info{0%,100%{box-shadow:0 8px 40px rgba(0,0,0,0.7),0 0 0 4px rgba(255,255,255,0.3);}50%{box-shadow:0 8px 50px rgba(0,0,0,0.8),0 0 0 10px rgba(255,255,255,0.15);}}
 @media(max-width:700px){
   #btnList{display:none;}
   .desktop-label{display:none;}
@@ -179,9 +182,6 @@ header h1{font-size:1.1rem;font-weight:700;}
 <!-- Main Modal -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
   <div class="modal" onclick="event.stopPropagation()">
-    <div class="modal-header">
-      <h2 id="modalTitle"></h2>
-    </div>
     <div class="gallery-container" id="galleryContainer" style="display:none;">
       <img id="galleryImage" class="gallery-image" onclick="openFullscreen(currentImageIndex)"/>
       <div class="gallery-nav" id="galleryNav" style="display:none;">
@@ -189,6 +189,9 @@ header h1{font-size:1.1rem;font-weight:700;}
         <button class="gallery-btn" id="galleryNext" onclick="nextImage()">›</button>
       </div>
       <div class="gallery-dots" id="galleryDots"></div>
+    </div>
+    <div class="modal-header">
+      <h2 id="modalTitle"></h2>
     </div>
     <div class="modal-content">
       <div id="modalFields"></div>
@@ -206,11 +209,13 @@ header h1{font-size:1.1rem;font-weight:700;}
       <button class="fs-nav-btn" id="fsNext" onclick="nextImageFS()">›</button>
     </div>
     <div class="fs-counter" id="fsCounter"></div>
+    <button class="fs-info-btn" onclick="openInfoFromFS()">ℹ️ פרטים</button>
   </div>
 </div>
 
 <script>
-const API_URL='https://script.google.com/macros/s/AKfycbxsrFeBBKd1NN_Tzffbb5HjCqTE2vEeq8xbx0KSXO1G-_B_HkxlbW9hdRR4ezMJCsD6-w/exec';
+const API_URL='https://script.google.com/macros/s/AKfycbylfK2AoCFcDCpvRWCS6DB3ciPL0VvzsrlNhtmhOxIuxW7v5LmI6Sic5vTvY37gae3mWQ/exec';
+const API_URL_ANALYTICS='https://script.google.com/macros/s/AKfycbxsrFeBBKd1NN_Tzffbb5HjCqTE2vEeq8xbx0KSXO1G-_B_HkxlbW9hdRR4ezMJCsD6-w/exec';
 const DEFAULT_IMG='https://res.cloudinary.com/df8cqjeu6/image/upload/v1781481615/Gemini_Generated_Image_lhtutylhtutylhtu_kddlrl.png';
 function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function sendBeacon(url){
@@ -225,14 +230,14 @@ function sendBeacon(url){
 function logVisit(page){
   try{
     const device=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?'mobile':'desktop';
-    const url=API_URL+'?action=logVisit&page='+encodeURIComponent(page)+'&device='+device+'&t='+Date.now();
+    const url=API_URL_ANALYTICS+'?action=logVisit&page='+encodeURIComponent(page)+'&device='+device+'&t='+Date.now();
     setTimeout(()=>sendBeacon(url),500+Math.random()*1000);
   }catch(e){}
 }
 function logHallView(name){
   try{
     const device=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?'mobile':'desktop';
-    const url=API_URL+'?action=logHallView&hall='+encodeURIComponent(name)+'&device='+device+'&t='+Date.now();
+    const url=API_URL_ANALYTICS+'?action=logHallView&hall='+encodeURIComponent(name)+'&device='+device+'&t='+Date.now();
     sendBeacon(url);
   }catch(e){}
 }
@@ -393,7 +398,11 @@ function openModal(i){
     </div>
   `).join('');
 
-  document.getElementById('modalOverlay').classList.add('open');
+  if(images.length){
+    openFullscreen(0);
+  } else {
+    document.getElementById('modalOverlay').classList.add('open');
+  }
 }
 
 function updateGalleryUI(images){
@@ -462,6 +471,10 @@ function closeModal(e){
 function closeFullscreen(e){
   if(!e || e.target===document.getElementById('fullscreenOverlay'))
     document.getElementById('fullscreenOverlay').classList.remove('open');
+}
+
+function openInfoFromFS(){
+  document.getElementById('modalOverlay').classList.add('open');
 }
 
 function cookieConsentChoice(accepted){

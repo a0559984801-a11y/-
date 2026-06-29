@@ -426,7 +426,7 @@ textarea{resize:vertical;min-height:70px;}
 </div><!-- end adminContent -->
 
 <script>
-const API_URL='https://script.google.com/macros/s/AKfycbxsrFeBBKd1NN_Tzffbb5HjCqTE2vEeq8xbx0KSXO1G-_B_HkxlbW9hdRR4ezMJCsD6-w/exec';
+const API_URL='https://script.google.com/macros/s/AKfycbylfK2AoCFcDCpvRWCS6DB3ciPL0VvzsrlNhtmhOxIuxW7v5LmI6Sic5vTvY37gae3mWQ/exec';
 let _adminPass='';
 
 // ===== Statistics / נתוני גלישה =====
@@ -1233,7 +1233,7 @@ async function changePass(){
 }
 
 // ===== PASSWORD GATE =====
-const API_URL_GATE='https://script.google.com/macros/s/AKfycbxsrFeBBKd1NN_Tzffbb5HjCqTE2vEeq8xbx0KSXO1G-_B_HkxlbW9hdRR4ezMJCsD6-w/exec';
+const API_URL_GATE='https://script.google.com/macros/s/AKfycbylfK2AoCFcDCpvRWCS6DB3ciPL0VvzsrlNhtmhOxIuxW7v5LmI6Sic5vTvY37gae3mWQ/exec';
 
 async function checkGate(){
   const pass=document.getElementById('gatePass').value;
@@ -1257,7 +1257,9 @@ async function checkGate(){
       document.getElementById('gatePass').focus();
     }
   } catch(e){
-    document.getElementById('gateErr').textContent='שגיאה בטעינה, נסה שוב';
+    console.error('checkGate error:', e);
+    const msg = e && e.message ? e.message : String(e);
+    document.getElementById('gateErr').textContent = msg.includes('JSON') ? '❌ השרת החזיר תשובה לא תקינה — ודא שה-Apps Script פרוסס כ-"Anyone"' : '❌ שגיאת רשת: ' + msg;
     document.getElementById('gateErr').style.display='block';
   }
 }
