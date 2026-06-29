@@ -210,7 +210,7 @@ header h1{font-size:1.1rem;font-weight:700;}
 </div>
 
 <script>
-const API_URL='https://script.google.com/macros/s/AKfycbylfK2AoCFcDCpvRWCS6DB3ciPL0VvzsrlNhtmhOxIuxW7v5LmI6Sic5vTvY37gae3mWQ/exec';
+const API_URL='https://script.google.com/macros/s/AKfycbxsrFeBBKd1NN_Tzffbb5HjCqTE2vEeq8xbx0KSXO1G-_B_HkxlbW9hdRR4ezMJCsD6-w/exec';
 const DEFAULT_IMG='https://res.cloudinary.com/df8cqjeu6/image/upload/v1781481615/Gemini_Generated_Image_lhtutylhtutylhtu_kddlrl.png';
 function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function sendBeacon(url){
@@ -483,13 +483,7 @@ function cookieConsentChoice(accepted){
 })();
 
 loadHalls();
-logVisit('halls');
-const _pageStart=Date.now();
-window.addEventListener('pagehide',function(){
-  const sec=Math.round((Date.now()-_pageStart)/1000);
-  if(sec<2) return;
-  try{fetch(API_URL+'?action=logDuration&seconds='+sec+'&t='+Date.now(),{keepalive:true});}catch(e){}
-});
+// logVisit ו-logDuration הושבתו כדי לחסוך במכסת הרצות (360 דק'/יום).
 </script>
 </body>
 </html>

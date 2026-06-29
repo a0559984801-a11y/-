@@ -492,7 +492,7 @@ th.hall-name-th:hover{background:#2a2a4e;}
 </div>
 
 <script>
-const API_URL='https://script.google.com/macros/s/AKfycbylfK2AoCFcDCpvRWCS6DB3ciPL0VvzsrlNhtmhOxIuxW7v5LmI6Sic5vTvY37gae3mWQ/exec';
+const API_URL='https://script.google.com/macros/s/AKfycbxsrFeBBKd1NN_Tzffbb5HjCqTE2vEeq8xbx0KSXO1G-_B_HkxlbW9hdRR4ezMJCsD6-w/exec';
 // Safe JSON parse - never crashes on bad data
 function safeParse(str,fallback){
   if(!str) return fallback;
@@ -518,7 +518,9 @@ function sendBeacon(url){
   try{fetch(url,{method:'GET',keepalive:true,cache:'no-store'});}catch(e){}
 }
 // Log visit to Google Sheets (fire and forget, never blocks the page)
+let _visitLogged=false;
 function logVisit(page){
+  if(_visitLogged)return; _visitLogged=true;
   // Fire after load + idle so the slow Apps Script beacon never extends the load event.
   // An extra randomized delay staggers this away from the initial data fetch
   // (which also hits the same Apps Script deployment), reducing 503s.
@@ -1365,13 +1367,7 @@ function cookieConsentChoice(accepted){
 
 fetchData();
 setInterval(fetchData,60000); // רענון אוטומטי כל דקה, כל עוד הדף פתוח
-logVisit('index');
-const _pageStart=Date.now();
-window.addEventListener('pagehide',function(){
-  const sec=Math.round((Date.now()-_pageStart)/1000);
-  if(sec<2) return;
-  try{fetch(API_URL+'?action=logDuration&seconds='+sec+'&t='+Date.now(),{keepalive:true});}catch(e){}
-});
+// logVisit ו-logDuration הושבתו כדי לחסוך במכסת הרצות (360 דק'/יום).
 </script>
 </body>
 </html>
