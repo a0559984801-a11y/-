@@ -9,7 +9,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://script.google.com">
 <link rel="dns-prefetch" href="https://www.googletagmanager.com">
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap">
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
 gtag('consent','default',{'analytics_storage':'denied','ad_storage':'denied'});
@@ -1340,6 +1339,7 @@ function applyData(availData,settingsData,hallsData){
 }
 
 async function fetchData(){
+  _lastFetchAt=Date.now();
   sessionStorage.removeItem('hd');sessionStorage.removeItem('ht');
   try{localStorage.removeItem('hallCacheV1');}catch(e){} // drop legacy oversized cache
   // 1) Instant render from cache (stale-while-revalidate)
@@ -1411,13 +1411,14 @@ function cookieConsentChoice(accepted){
   document.getElementById('cookieBanner').classList.add('show');
 })();
 
+let _lastFetchAt=Date.now();
 fetchData();
 let _refreshTimer=setInterval(fetchData,60000); // רענון אוטומטי כל דקה, רק כשהטאב גלוי
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden){
     clearInterval(_refreshTimer);
   }else{
-    fetchData();
+    if(Date.now()-_lastFetchAt>=60000) fetchData();
     _refreshTimer=setInterval(fetchData,60000);
   }
 });
