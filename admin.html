@@ -433,6 +433,14 @@ textarea{resize:vertical;min-height:70px;}
         <div class="sync-last" id="last-calendar" style="font-size:0.78rem;color:#999;margin:4px 0;"></div>
         <button class="btn-save" onclick="runSync('calendar',this)">▶ הרץ עכשיו</button>
       </div>
+      <div class="card">
+        <b>⏱️ זמן ריצה מצטבר היום — פרויקט ראשי</b> <span style="color:#888;font-size:0.82rem;">— מתאפס אוטומטית בחצות (מתוך 360 דק' מכסה יומית)</span>
+        <div class="sync-last" id="daily-runtime" style="font-size:0.78rem;color:#999;margin:4px 0;"></div>
+      </div>
+      <div class="card">
+        <b>⏱️ זמן ריצה מצטבר היום — פרויקט אנליטיקה</b> <span style="color:#888;font-size:0.82rem;">— מתאפס אוטומטית בחצות (מתוך 360 דק' מכסה יומית)</span>
+        <div class="sync-last" id="daily-runtime-analytics" style="font-size:0.78rem;color:#999;margin:4px 0;"></div>
+      </div>
     </div>
 
   </div>
@@ -630,6 +638,16 @@ async function loadSyncStatus(){
     const el=document.getElementById('last-'+k); if(!el) return;
     el.textContent=d[k]?('הורץ לאחרונה: '+new Date(d[k]).toLocaleString('he-IL')):'טרם הורץ';
   });
+  try{
+    const dR=await fetchAuthed('getDailyRuntime');
+    const el=document.getElementById('daily-runtime');
+    if(el) el.textContent=(dR&&typeof dR.seconds==='number')?(dR.seconds+' שניות מתוך 21,600 שניות (360 דק\')'):'אין נתון';
+  }catch(e){}
+  try{
+    const dRA=await fetchAuthed('getDailyRuntime', API_URL_ANALYTICS);
+    const elA=document.getElementById('daily-runtime-analytics');
+    if(elA) elA.textContent=(dRA&&typeof dRA.seconds==='number')?(dRA.seconds+' שניות מתוך 21,600 שניות (360 דק\')'):'אין נתון';
+  }catch(e){}
 }
 
 // Load all from server
