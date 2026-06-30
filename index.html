@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https: data: blob:; media-src 'self' https:; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com; frame-src 'none'; object-src 'none'; base-uri 'self';">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,7 +16,7 @@ gtag('consent','default',{'analytics_storage':'denied','ad_storage':'denied'});
 </script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-H8MXTNM0HY"></script>
 <script>gtag('js',new Date());gtag('config','G-H8MXTNM0HY');</script>
-<link rel="icon" type="image/png" href="favicon.png">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="apple-touch-icon" href="favicon.png">
 <meta name="description" content="זמינות אולמות חתונה בזמן אמת - בדקו אונליין אילו אולמות פנויים בתאריך שלכם, השוו בין אולמות, וצרו קשר בקליק. עדכון אוטומטי מהלוח שנה של כל אולם.">
 <meta name="keywords" content="אולמות חתונה, זמינות אולמות, אולמות אירועים, אולם לחתונה, חיפוש אולם פנוי">
@@ -1411,15 +1412,16 @@ function cookieConsentChoice(accepted){
   document.getElementById('cookieBanner').classList.add('show');
 })();
 
+const REFRESH_INTERVAL_MS=300000; // 5 דקות
 let _lastFetchAt=Date.now();
 fetchData();
-let _refreshTimer=setInterval(fetchData,60000); // רענון אוטומטי כל דקה, רק כשהטאב גלוי
+let _refreshTimer=setInterval(fetchData,REFRESH_INTERVAL_MS); // רענון אוטומטי כל 5 דקות, רק כשהטאב גלוי
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden){
     clearInterval(_refreshTimer);
   }else{
-    if(Date.now()-_lastFetchAt>=60000) fetchData();
-    _refreshTimer=setInterval(fetchData,60000);
+    if(Date.now()-_lastFetchAt>=REFRESH_INTERVAL_MS) fetchData();
+    _refreshTimer=setInterval(fetchData,REFRESH_INTERVAL_MS);
   }
 });
 // logVisit ו-logDuration הושבתו כדי לחסוך במכסת הרצות (360 דק'/יום).
