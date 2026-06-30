@@ -9,30 +9,31 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://script.google.com">
 <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap">
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
 gtag('consent','default',{'analytics_storage':'denied','ad_storage':'denied'});
 </script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-H8MXTNM0HY"></script>
 <script>gtag('js',new Date());gtag('config','G-H8MXTNM0HY');</script>
-<link rel="icon" type="image/png" href="favicon.png">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="apple-touch-icon" href="favicon.png">
 <meta name="description" content="זמינות אולמות חתונה בזמן אמת - בדקו אונליין אילו אולמות פנויים בתאריך שלכם, השוו בין אולמות, וצרו קשר בקליק. עדכון אוטומטי מהלוח שנה של כל אולם.">
 <meta name="keywords" content="אולמות חתונה, זמינות אולמות, אולמות אירועים, אולם לחתונה, חיפוש אולם פנוי">
-<link rel="canonical" href="https://a0559984801-a11y.github.io/-/index.html">
+<link rel="canonical" href="https://xn----zhceowpcf6gc.xn--4dbrk0ce/index.html">
 <meta property="og:type" content="website">
 <meta property="og:title" content="זמינות אולמות חתונה - כל האולמות במקום אחד">
 <meta property="og:description" content="בדקו בזמן אמת אילו אולמות חתונה פנויים בתאריך שלכם. השוו בין אולמות, סננו לפי אזור ומחיר, וצרו קשר ישירות.">
-<meta property="og:image" content="https://a0559984801-a11y.github.io/-/og-image.png">
+<meta property="og:image" content="https://xn----zhceowpcf6gc.xn--4dbrk0ce/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:url" content="https://a0559984801-a11y.github.io/-/index.html">
+<meta property="og:url" content="https://xn----zhceowpcf6gc.xn--4dbrk0ce/index.html">
 <meta property="og:locale" content="he_IL">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="זמינות אולמות חתונה - כל האולמות במקום אחד">
 <meta name="twitter:description" content="בדקו בזמן אמת אילו אולמות חתונה פנויים בתאריך שלכם.">
 <title>זמינות אולמות חתונה</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Rubik',sans-serif;background:#f7f5f0;color:#1a1a1a;min-height:100vh;display:flex;flex-direction:column;font-weight:400;}
 body.has-bottom-ad{padding-bottom:8vh;}
@@ -422,7 +423,10 @@ th.hall-name-th:hover{background:#2a2a4e;}
     </div>
 
     <div class="loading" id="loading">טוען נתונים...</div>
-    <div class="error" id="errorMsg" style="display:none"></div>
+    <div class="error" id="errorMsg" style="display:none">
+      <span id="errorMsgText"></span>
+      <button id="errorRetryBtn" class="btn-filter" style="width:auto;margin-top:8px;padding:6px 18px;" onclick="fetchData()">נסה שוב</button>
+    </div>
 
     <div class="table-scroll" id="tableView">
       <table id="mainTable" style="display:none">
@@ -454,11 +458,9 @@ th.hall-name-th:hover{background:#2a2a4e;}
 <div id="popupAdOverlay" onclick="closePopupAd()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:9999;align-items:center;justify-content:center;">
   <div onclick="event.stopPropagation()" style="position:relative;max-width:480px;width:90%;border-radius:12px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.5);">
     <button onclick="closePopupAd()" style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,0.55);border:none;color:white;border-radius:50%;width:34px;height:34px;font-size:1.2rem;cursor:pointer;z-index:10;line-height:1;display:flex;align-items:center;justify-content:center;">✕</button>
-    <a id="popupAdLink" href="#" target="_blank" rel="noopener noreferrer">
+    <a id="popupAdLink" href="#" target="_blank" rel="noopener noreferrer" style="display:block;text-decoration:none;">
       <img id="popupAdImg" src="" alt="פרסומת" style="width:100%;display:block;">
     </a>
-    <div id="popupAdText" style="padding:10px;text-align:center;background:white;font-family:'Rubik',sans-serif;font-size:0.95rem;display:none;"></div>
-    <button onclick="closePopupAd()" style="display:block;width:100%;padding:10px;background:#f0ece4;border:none;font-family:'Rubik',sans-serif;font-size:0.88rem;cursor:pointer;color:#1a1a2e;font-weight:600;">לפרסום לחצו כאן</button>
   </div>
 </div>
 
@@ -642,8 +644,8 @@ function updateBottomAdMedia(ad,media){
   const link=ad.link;
   const url=pickUrl(media);
   let inner='';
-  if(media.type==='video') inner+=`<video autoplay loop muted><source src="${url}" type="video/mp4"/></video>`;
-  else inner+=`<img src="${url}"/>`;
+  if(media.type==='video') inner+=`<video autoplay loop muted><source src="${escHtml(url)}" type="video/mp4"/></video>`;
+  else inner+=`<img src="${escHtml(url)}"/>`;
   if(txt) inner+=`<span class="ad-bottom-text">${escHtml(txt)}</span>`;
   content.innerHTML=wrapLink(link,inner);
 }
@@ -653,8 +655,8 @@ function updateSideAdMedia(ad,media){
   if(!adSide) return;
   const url=pickUrl(media);
   let inner='';
-  if(media.type==='video') inner=`<video autoplay loop muted style="width:100%;height:100%;object-fit:cover;"><source src="${url}" type="video/mp4"/></video>`;
-  else inner=`<img src="${url}" style="width:100%;height:100%;object-fit:cover;display:block;"/>`;
+  if(media.type==='video') inner=`<video autoplay loop muted style="width:100%;height:100%;object-fit:cover;"><source src="${escHtml(url)}" type="video/mp4"/></video>`;
+  else inner=`<img src="${escHtml(url)}" style="width:100%;height:100%;object-fit:cover;display:block;"/>`;
   adSide.innerHTML=wrapLink(ad.link,inner);
 }
 
@@ -666,8 +668,8 @@ function updateBottomAd(ad){
   const img=(IS_MOBILE&&ad.imgMobile)?ad.imgMobile:(ad.img||null);
   const vid=ad.vid;
   let inner='';
-  if(img) inner+=`<img src="${img}"/>`;
-  else if(vid) inner+=`<video autoplay loop muted><source src="${vid}" type="video/mp4"/></video>`;
+  if(img) inner+=`<img src="${escHtml(img)}"/>`;
+  else if(vid) inner+=`<video autoplay loop muted><source src="${escHtml(vid)}" type="video/mp4"/></video>`;
   if(txt) inner+=`<span class="ad-bottom-text">${escHtml(txt)}</span>`;
   content.innerHTML=wrapLink(link,inner);
 }
@@ -680,8 +682,8 @@ function updateSideAd(ad){
   const img=(IS_MOBILE&&ad.imgMobile)?ad.imgMobile:(ad.img||null);
   const vid=ad.vid;
   let inner='';
-  if(img) inner=`<img src="${img}" style="width:100%;height:100%;object-fit:cover;display:block;"/>`;
-  else if(vid) inner=`<video autoplay loop muted style="width:100%;height:100%;object-fit:cover;"><source src="${vid}" type="video/mp4"/></video>`;
+  if(img) inner=`<img src="${escHtml(img)}" style="width:100%;height:100%;object-fit:cover;display:block;"/>`;
+  else if(vid) inner=`<video autoplay loop muted style="width:100%;height:100%;object-fit:cover;"><source src="${escHtml(vid)}" type="video/mp4"/></video>`;
   else inner=`<span style="color:#999">${escHtml(txt)}</span>`;
   adSide.innerHTML=wrapLink(link,inner);
 }
@@ -1199,10 +1201,8 @@ function loadSettings(){
           const overlay=document.getElementById('popupAdOverlay');
           const img=document.getElementById('popupAdImg');
           const lnk=document.getElementById('popupAdLink');
-          const txt=document.getElementById('popupAdText');
           if(imgUrl){img.src=imgUrl;img.style.display='block';}else img.style.display='none';
           if(ad.link){lnk.href=ad.link;}else lnk.removeAttribute('href');
-          if(ad.text){txt.textContent=ad.text;txt.style.display='block';}else txt.style.display='none';
           overlay.style.display='flex';
         },delay);
       }
@@ -1352,12 +1352,15 @@ async function fetchData(){
     }
   }catch(e){}
   // 2) Refresh from network — in background if cache already rendered
+  const _timeoutMs=10000;
+  const _ac=new AbortController();
+  const _timer=setTimeout(()=>_ac.abort(),_timeoutMs);
   try{
     const _cb='_cb='+Date.now(); // cache-buster so the browser never serves a stale response
     const [r1,r2,r3]=await Promise.all([
-      fetch(API_URL+'?'+_cb,{cache:'no-store'}),
-      fetch(API_URL+'?action=settings&'+_cb,{cache:'no-store'}),
-      fetch(API_URL+'?action=halls&'+_cb,{cache:'no-store'})
+      fetch(API_URL+'?'+_cb,{cache:'no-store',signal:_ac.signal}),
+      fetch(API_URL+'?action=settings&'+_cb,{cache:'no-store',signal:_ac.signal}),
+      fetch(API_URL+'?action=halls&'+_cb,{cache:'no-store',signal:_ac.signal})
     ]);
     const availData=trimAvail(r1.ok?await r1.json():[]);
     const settingsData=r2.ok?await r2.json():{};
@@ -1367,6 +1370,7 @@ async function fetchData(){
     if(renderedFromCache&&cachedRaw===fresh) return;
     const ok=applyData(availData,settingsData,hallsData);
     if(ok){
+      document.getElementById('errorMsg').style.display='none';
       try{localStorage.setItem(CACHE_KEY,fresh);}catch(e){}
     } else if(!renderedFromCache){
       throw new Error('empty');
@@ -1375,8 +1379,10 @@ async function fetchData(){
     if(!renderedFromCache&&!allData.length){
       document.getElementById('loading').style.display='none';
       document.getElementById('errorMsg').style.display='block';
-      document.getElementById('errorMsg').textContent='שגיאה בטעינת הנתונים.';
+      document.getElementById('errorMsgText').textContent='שגיאה בטעינת הנתונים.';
     }
+  }finally{
+    clearTimeout(_timer);
   }
 }
 
@@ -1406,7 +1412,15 @@ function cookieConsentChoice(accepted){
 })();
 
 fetchData();
-setInterval(fetchData,60000); // רענון אוטומטי כל דקה, כל עוד הדף פתוח
+let _refreshTimer=setInterval(fetchData,60000); // רענון אוטומטי כל דקה, רק כשהטאב גלוי
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){
+    clearInterval(_refreshTimer);
+  }else{
+    fetchData();
+    _refreshTimer=setInterval(fetchData,60000);
+  }
+});
 // logVisit ו-logDuration הושבתו כדי לחסוך במכסת הרצות (360 דק'/יום).
 </script>
 </body>
